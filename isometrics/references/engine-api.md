@@ -86,6 +86,8 @@ viewer (a flap, a door, a lid), **z** turns about the vertical.
 | `PlayOnHover({ children })` | passes `active` to its one child on hover, focus and touch |
 | `LineStateProps` | the props every object takes |
 | `ICON` | button icon paths: `plus`, `upload`, `arrowLeft`, `refresh` |
+| `ButtonIcon({ d?, flip?, children? })` | the button's icon: one path, or any shapes as children; `flip` mirrors it in right-to-left layouts |
+| `LINE_BUTTON` | the state button's classes, for objects that build their own button |
 
 ## The shape of an object file
 

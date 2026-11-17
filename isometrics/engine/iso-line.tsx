@@ -458,10 +458,23 @@ export const lineStageStyle = (variant: IsoVariant) =>
 
 /* -------------------------------- Icons ---------------------------------- */
 
-/** A 24px stroke icon for the button: its paths, drawn in currentColor. */
-export const ButtonIcon = ({ d }: { d: string }) => (
+/**
+ * A 24px stroke icon for the button, drawn in currentColor: one path `d`,
+ * or any shapes as children (circles, several paths). `flip` mirrors it in
+ * right-to-left layouts (arrows that point "back").
+ */
+export const ButtonIcon = ({
+  d,
+  flip = false,
+  children,
+}: {
+  d?: string;
+  flip?: boolean;
+  children?: ReactNode;
+}) => (
   <svg
     aria-hidden="true"
+    className={flip ? "rtl:-scale-x-100" : undefined}
     data-icon="inline-start"
     fill="none"
     stroke="currentColor"
@@ -470,7 +483,8 @@ export const ButtonIcon = ({ d }: { d: string }) => (
     strokeWidth="2"
     viewBox="0 0 24 24"
   >
-    <path d={d} />
+    {d ? <path d={d} /> : null}
+    {children}
   </svg>
 );
 
@@ -516,9 +530,12 @@ export interface LineStateProps {
   className?: string;
 }
 
-// Optical padding: an icon carries its own white space, so the label's
-// side gets 2px more than the icon's (12px and 14px).
-const BUTTON =
+/**
+ * The state button's classes. Optical padding: an icon carries its own
+ * white space, so the label's side gets 2px more than the icon's (12px and
+ * 14px). Exported for objects that build their own button.
+ */
+export const LINE_BUTTON =
   "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
 
 /**
@@ -583,7 +600,11 @@ export const LineState = ({
     </IsoStage>
   );
   const button = props.actionLabel ? (
-    <Button className={BUTTON} onClick={props.onAction} variant={buttonVariant}>
+    <Button
+      className={LINE_BUTTON}
+      onClick={props.onAction}
+      variant={buttonVariant}
+    >
       {icon ? <ButtonIcon d={icon} /> : null}
       {props.actionLabel}
     </Button>

@@ -240,19 +240,24 @@ export const Rig = ({
   children: ReactNode;
 }) => {
   const cam = useCamera();
-  const [live, setLive] = useState<IsoPose>(() => (pose ? pose(0) : {}));
+  // The pose is read from the clock as the rig renders; the state below
+  // only asks for a render when the sampled pose changes. Without a clock
+  // the plain pose props hold, so a rig that loses its clock (reduced
+  // motion turning on, an object put back at rest) never keeps the last
+  // pose it was given.
+  const [, setShown] = useState("");
   const last = useRef("");
   useMotionValueEvent(clock ?? STILL_CLOCK, "change", (ms) => {
     if (!pose) {
       return;
     }
-    const next = pose(ms);
-    const key = JSON.stringify(next);
+    const key = JSON.stringify(pose(ms));
     if (key !== last.current) {
       last.current = key;
-      setLive(next);
+      setShown(key);
     }
   });
+  const live: IsoPose = clock && pose ? pose(clock.get()) : {};
   const local = poseModel(pivot, {
     axis: live.axis ?? axis,
     offset: live.offset ?? offset,
