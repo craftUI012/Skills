@@ -7,14 +7,34 @@ so you can apply the rule to objects it never mentions.
 
 | Do | Don't | Why |
 | --- | --- | --- |
-| One object, facing the screen | A scene, a pile, a desk of things | An empty state has one idea; a scene asks to be read |
+| One object, in the view that suits it (front or isometric) | A scene, a pile, a desk of things | An empty state has one idea; a scene asks to be read |
 | A 1 px outline on every visible edge (`strokeWidth` 0.23 in `ink`) | Thicker strokes, a second weight for details | One weight is what makes the set look like one family at any size |
 | Paper faces: palette `surface`, walls a whisper darker than tops | Shading, gradients, lit faces | The outline carries the form; shading turns line art into clip art |
 | One small brand mark (palette `main`): a dot, a label, a hand, a flag | A brand-coloured body, two coloured parts | The eye needs one landing point; a coloured body shouts |
 | No shadow, no floor, no grid | Drop shadows, contact shadows, glow, halos, bloom | They date the drawing and fight the page; the object sits on the copy, not on a floor |
 | `variant="ink"` by default, `"line"` as the pure-outline option | Mixing ink and line parts | One look per object |
 
-## Facing the screen
+## Front or isometric: pick the view first
+
+The first decision for every object, before any part (2026-11-17, after
+a batch drawn all front-on came back as "lots of lines not clean", flat
+and unrealistic):
+
+| The object is… | View | Examples | Why |
+| --- | --- | --- | --- |
+| **flat or thin**: mostly one face | `view="front"` | a page, a badge, a card, a floppy disk, a hard drive's open face, a dial, an envelope | its face is the subject; at the isometric angle it looks turned away |
+| **boxy or deep**: it has walls and a top | `view="isometric"` | a printer, a box, a server, a tray, a briefcase seen as luggage, a stick lying on a desk | front-on it reads as a flat sticker, and its walls collapse into thin strips that draw as doubled lines |
+| **round and upright** | either; front is usual | a can, a pot, a database stack, a bell | a level circle is the same ellipse from any yaw |
+
+Objects that lie on the floor (a USB stick, a phone, a pen) are isometric
+by nature: lying flat, their top is the face you read. In isometric view,
+build the object along the world axes standing on z = 0 and pass
+`view="isometric"` to `LineState`; its bounds go through
+`viewBounds("isometric", …)` (no `facing`). The paper walls step a shade
+under the top (left lighter than right), so the solid reads with one
+outline and no shading tricks.
+
+## Facing the screen (front view)
 
 - **Build facing +y, about x = 0, standing on z = 0, and show it through
   `FRONT_POSE`.** The isometric camera sees +y at an angle; the kit turns
@@ -28,6 +48,56 @@ so you can apply the rule to objects it never mentions.
   cut-out).
 - **Bounds go through `facing`.** The stage fits its frame to `bounds`
   without the rig, so map every bound point through `facing`.
+
+## Clean lines (the checker measures this)
+
+Every outline is one clean line. The checker renders the resting pose in
+dark at 4× and fails it when more than 10% of the outline runs 0.5–2 px
+beside another line (`lines-marked.png` shows where, in red). Where that
+happens and what to do:
+
+- **A thickness strip too thin to read.** In the front view a solid shows
+  its depth along its top edges at depth/√3; at a few tenths of a unit
+  that is two parallel lines a pixel apart, and along a curved side it
+  tapers into a smudge. Give a front-view solid either **no depth** (a
+  flat face, one outline) or a depth whose strip is **at least ~4 px** at
+  the default size. If it needs depth to read, it probably wants the
+  isometric view.
+- **A part standing barely proud.** A latch, a drive bay, a shutter, a
+  label sitting 0.1–0.4 in front of its body draws a second edge right
+  beside the first. Make it **flush** (one line) or **≥ 0.5 proud**
+  (a clear strip). Nothing in between.
+- **Stepped round parts.** A database stack built from layers with a
+  narrower band between them drew four near-parallel arcs per seam and
+  arcs that stopped mid-air where a near-tangent edge hid them (the
+  user's screenshot, 2026-11-17). Stack round parts at **one radius**
+  and draw each seam as **one** ring line; if a step is wanted, make it
+  ≥ 0.5 so the ledge reads as a face.
+- **Two edges of different parts on the same spot.** A shutter's top on
+  the disk's top, a lid seam on a body edge: overlap them exactly (one
+  line) or separate them by ≥ 0.5.
+- **Lines that end in the air.** Every line ends on another line, a
+  corner, or a clean occluding edge it meets at a real angle. A line
+  hidden by a near-tangent curve reads as broken.
+
+Look at `lines.png` yourself as well: the measure catches doubles, not
+everything that reads as dirty.
+
+## Detail: three tiers
+
+"Not realistic" usually means only the first tier is there. Every object
+needs all three, with the outline doing the work:
+
+1. **Form**: the silhouette and the main masses (body, lid, tray).
+2. **Parts**: what a real one has and people recognise it by (a printer's
+   paper tray, output tray, control panel; a box's lid overhang and
+   hand holes; a server's bays and vents).
+3. **Marks**: small, quiet details on the faces (screws, a seam, a vent
+   grille, a label, ruled lines, a tiny display): face details on the
+   0.25 grid, drawn as lines, never filled blocks.
+
+Stop before it gets busy: if a detail doesn't help someone name the
+object or play the beat, leave it out.
 
 ## Resting straight
 

@@ -302,6 +302,88 @@ for (const theme of ["light", "dark"]) {
   await context.close();
 }
 
+// Clean lines: the resting pose in dark at 4×, where stray and doubled
+// lines show most. Two outlines running 0.5–2 px apart read as one dirty,
+// doubled line (a thin top strip, a part standing barely proud, stepped
+// rings). Writes lines.png (to look at) and lines-marked.png (the doubles
+// in red).
+{
+  const context = await browser.newContext({
+    colorScheme: "dark",
+    deviceScaleFactor: 4,
+    reducedMotion: "reduce",
+    viewport: { height: 900, width: 900 },
+  });
+  const page = await context.newPage();
+  await page.goto(url, { timeout: 120_000, waitUntil: "networkidle" });
+  if (darkClass) {
+    await page.evaluate((c) => document.documentElement.classList.add(c), darkClass);
+  }
+  const stage = page.locator(`${ART} [data-slot="iso-stage"]`).first();
+  await stage.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(800);
+  const shot = await stage.screenshot({ path: join(out, "lines.png") });
+  const result = await page.evaluate(async (b64) => {
+    const img = await createImageBitmap(await (await fetch(`data:image/png;base64,${b64}`)).blob());
+    const canvas = new OffscreenCanvas(img.width, img.height);
+    const g = canvas.getContext("2d");
+    g.drawImage(img, 0, 0);
+    const frame = g.getImageData(0, 0, img.width, img.height);
+    const { data, width: W, height: H } = frame;
+    // Outline pixels: bright and grey (the brand mark is saturated).
+    const line = new Uint8Array(W * H);
+    for (let i = 0; i < W * H; i += 1) {
+      const [r, gr, b] = [data[i * 4], data[i * 4 + 1], data[i * 4 + 2]];
+      const l = 0.3 * r + 0.59 * gr + 0.11 * b;
+      line[i] = l > 140 && Math.max(r, gr, b) - Math.min(r, gr, b) < 40 ? 1 : 0;
+    }
+    const mark = new Uint8Array(W * H);
+    // Along every row and column: two line runs 2–9 device px apart.
+    const scan = (count, len, at, set) => {
+      for (let k = 0; k < count; k += 1) {
+        let start = -1;
+        let prev = null;
+        for (let t = 0; t <= len; t += 1) {
+          const on = t < len && at(k, t);
+          if (on && start < 0) start = t;
+          if (!on && start >= 0) {
+            if (prev) {
+              const gap = start - prev[1] - 1;
+              if (gap >= 2 && gap <= 9) for (let u = prev[0]; u < t; u += 1) set(k, u);
+            }
+            prev = [start, t - 1];
+            start = -1;
+          }
+        }
+      }
+    };
+    scan(H, W, (y, x) => line[y * W + x], (y, x) => { mark[y * W + x] = 1; });
+    scan(W, H, (x, y) => line[y * W + x], (x, y) => { mark[y * W + x] = 1; });
+    let marked = 0;
+    let total = 0;
+    for (let i = 0; i < W * H; i += 1) {
+      total += line[i];
+      if (mark[i] && line[i]) {
+        marked += 1;
+        data[i * 4] = 255; data[i * 4 + 1] = 40; data[i * 4 + 2] = 40;
+      }
+    }
+    g.putImageData(frame, 0, 0);
+    const blob = await canvas.convertToBlob({ type: "image/png" });
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    let bin = "";
+    for (const byte of bytes) bin += String.fromCharCode(byte);
+    return { marked: total ? marked / total : 0, png: btoa(bin) };
+  }, shot.toString("base64"));
+  await writeFile(join(out, "lines-marked.png"), Buffer.from(result.png, "base64"));
+  pass(
+    "clean lines (near-doubled outline ≤ 10%)",
+    result.marked <= 0.1,
+    `${(result.marked * 100).toFixed(1)}% of outline pixels run 0.5–2 px beside another line; see lines-marked.png`
+  );
+  await context.close();
+}
+
 // Settles exactly back to rest (or to its end state, for one-way beats).
 {
   const context = await browser.newContext();
@@ -367,5 +449,6 @@ for (const r of results) {
   console.log(`${r.ok ? "PASS" : "FAIL"}  ${r.id}${r.detail ? `  (${r.detail})` : ""}`);
 }
 console.log(`\nFrames and sheet: ${join(out, "sheet.png")}`);
+console.log(`Lines at 4× in dark: ${join(out, "lines.png")} (doubles in red: lines-marked.png)`);
 console.log("Now LOOK at the sheet against the checklist in SKILL.md before calling it done.");
 process.exit(results.every((r) => r.ok) ? 0 : 1);

@@ -12,7 +12,8 @@ built from 3D primitives in world units and projected in true isometric,
 so it shares one grid, one outline and one look with every other object
 made with this skill.
 
-The look, in one line: **one object, facing the screen, a 1 px outline over
+The look, in one line: **one object, front-on if it is flat or at the true
+isometric angle if it is boxy, a 1 px outline over
 paper-white faces, one small brand-coloured mark, no shadow, no glow, one
 beat of motion and then stillness.**
 
@@ -125,8 +126,16 @@ sentences, button label (≤ 22 characters) and its icon (the icon follows
 the verb: a plus only where the action adds).
 
 Rules that decide parts (all in `references/line-style.md`):
-- Build facing +y about x = 0, standing on z = 0. The Line kit turns it
-  to face the screen.
+- **Pick the view first.** Flat or thin things (a page, a badge, a disk)
+  are `view="front"`; boxy or deep things (a printer, a box, a server, a
+  tray, a stick lying on a desk) are `view="isometric"`. Front-on boxes
+  read as flat stickers with doubled lines.
+- Build facing +y about x = 0, standing on z = 0.
+- **Three tiers of detail**: form, the parts people recognise it by, and
+  quiet marks (screws, vents, seams, a label).
+- **Clean lines**: a front-view solid has no depth or a clear one (strip
+  ≥ ~4 px); a part is flush or ≥ 0.5 proud; round stacks share one
+  radius with one seam line.
 - Flat things (paper, labels, screens) are faces, not solids.
 - Round solids are slices between level circles, painted from the foot up.
 - An outline that isn't convex needs its far edge drawn.
@@ -165,9 +174,11 @@ motion shows the resting pose.
      paint;
    - the resting drawing fits its frame;
    - the drawing is centred on the heading within 2 px;
+   - clean lines: at most 10% of the outline doubled within 0.5–2 px, in
+     dark at 4× (`lines.png`, doubles in red in `lines-marked.png`);
    - its optical size matches the set (√(w×h) 140–175 px).
-3. **Look at `sheet.png`** (open the image) and go through the checklist
-   below. The checker cannot see design; you can.
+3. **Look at `sheet.png` and `lines.png`** (open both) and go through the
+   checklist below. The checker cannot see design; you can.
 4. **Fix and run again.** At most three rounds. If something still falls
    short after three, stop and tell the user exactly what, with the sheet.
 5. **Report**: the concept, the storyboard, the checker result, what you
@@ -188,10 +199,16 @@ motion shows the resting pose.
 - [ ] The resting pose equals the reduced-motion pose (the checker
       compares pixels; you check it looks *intended*).
 
-**Lines**
+**Lines** (look at `lines.png`: dark, 4×)
 - [ ] One outline weight everywhere; no doubled edges, no hairline seams
       between fills, no missing far edges on curved outlines, no fill
-      poking past an outline.
+      poking past an outline, no line ending in the air.
+- [ ] Every part is flush or clearly proud (≥ 0.5); no thin strips.
+
+**Realism**
+- [ ] The right view: flat things front-on, boxy things isometric.
+- [ ] Three tiers: form, recognisable parts, quiet marks. Would someone
+      who owns one say "yes, that's a printer"?
 - [ ] The top strip (thickness seen from 30° above) is there on solids
       and absent on thin faces.
 

@@ -68,6 +68,7 @@ viewer (a flap, a door, a lid), **z** turns about the vertical.
 | API | What it is |
 | --- | --- |
 | `FRONT_POSE`, `FRONT`, `facing(p)` | the front view; `facing` maps bound points |
+| `LineView`, `viewBounds(view, extent)` | `"front"` or `"isometric"`; the frame's points for that view (pass `view` to `LineState` too) |
 | `LINE` | the one outline style for strokes you draw yourself |
 | `faceFill(palette, face)` | a filled face in a palette shade with the outline |
 | `Edge({ points })` | a straight 3D edge through the rigs around it |

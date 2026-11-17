@@ -105,12 +105,26 @@ export const FRONT_POSE: IsoPose = {
   scale: [1, 1, FRONT.stretch],
 };
 
+/**
+ * How an object is shown. "front": turned to face the screen (flat and
+ * thin things: a page, a badge, a disk, a dial). "isometric": the true
+ * three-quarter view, two walls and the top showing (boxy and deep things:
+ * a printer, a box, a server, a tray, a stick lying on the floor). Boxes
+ * shown front-on read as flat stickers, and their thin top strips draw as
+ * doubled lines.
+ */
+export type LineView = "front" | "isometric";
+
 /** Where a world point lands once the object faces the screen (for `bounds`). */
 export const facing = ([x, y, z]: Vec3): Vec3 => [
   (x + y) * Math.SQRT1_2,
   (y - x) * Math.SQRT1_2,
   z * FRONT.stretch,
 ];
+
+/** The frame's points for a view: through `facing` in front, as is in isometric. */
+export const viewBounds = (view: LineView, extent: readonly Vec3[]) =>
+  view === "front" ? extent.map(facing) : [...extent];
 
 /* -------------------------------- Lines ---------------------------------- */
 
@@ -547,6 +561,7 @@ export const LINE_BUTTON =
 export const LineState = ({
   slot,
   bounds,
+  view = "front",
   shell,
   stageClassName,
   defaultArtClassName = "w-48",
@@ -556,8 +571,10 @@ export const LineState = ({
   children,
 }: {
   slot: string;
-  /** World points the frame must hold, already through `facing`. */
+  /** World points the frame must hold, already through `viewBounds(view, …)`. */
   bounds: readonly Vec3[];
+  /** "front" (default) turns the object to face the screen; "isometric" shows it at the true three-quarter angle. */
+  view?: LineView;
   shell: ReturnType<typeof useLineShell>;
   /** Extra classes on the stage (a `translate` to centre the main mass). */
   stageClassName?: string;
@@ -580,7 +597,7 @@ export const LineState = ({
       LineStateProps,
       "onAction" | "children" | "title" | "artClassName" | "className"
     >;
-  /** The object, already inside `<Rig {...FRONT_POSE}>`. */
+  /** The object, built facing +y about x = 0 on z = 0 (the front view turns it). */
   children: ReactNode;
 }) => {
   const art = (
@@ -594,9 +611,13 @@ export const LineState = ({
       tone={props.tone}
       variant={props.variant}
     >
-      <Rig pivot={[0, 0, 0]} {...FRONT_POSE}>
-        {children}
-      </Rig>
+      {view === "front" ? (
+        <Rig pivot={[0, 0, 0]} {...FRONT_POSE}>
+          {children}
+        </Rig>
+      ) : (
+        children
+      )}
     </IsoStage>
   );
   const button = props.actionLabel ? (
