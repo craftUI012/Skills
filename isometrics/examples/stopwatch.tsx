@@ -3,6 +3,8 @@
 import { EASE, Extrude, FacePath, Rig, sample } from "./iso-core";
 import type { IsoKey, IsoPose, IsoTrack, Vec3 } from "./iso-core";
 import {
+  ARC,
+  FarEdge,
   LINE,
   LineState,
   Slice,
@@ -47,9 +49,17 @@ const TIMING = {
 // Built facing +y about x = 0; the front face is the plane y = 0.
 
 // The case: a disc standing on its edge, R round and DEPTH deep.
-const CASE = { depth: 1, r: 3 };
+const CASE = { depth: 1.5, r: 3 };
 const CENTRE: Vec3 = [0, 0, CASE.r];
 const TOP = CASE.r * 2;
+const CASE_AT: Vec3 = [-CASE.r, 0, TOP];
+// The upper half of the case's outline, left to right over the top (face
+// units, v down from the top): all of the back edge that shows.
+const CASE_CROWN = (() => {
+  const { r } = CASE;
+  const k = r2(r * ARC);
+  return `M0 ${r} C0 ${r2(r - k)} ${r2(r - k)} 0 ${r} 0 C${r2(r + k)} 0 ${r * 2} ${r2(r - k)} ${r * 2} ${r}`;
+})();
 // The crown stands on the case's top edge, in the middle of its depth.
 const AXIS_Y = -CASE.depth / 2;
 
@@ -66,21 +76,25 @@ const TICKS = Array.from({ length: 12 }, (_, i) => {
   return `M${r2(from * s)} ${r2(-from * c)} L${r2(TICK.outer * s)} ${r2(-TICK.outer * c)}`;
 }).join(" ");
 
-// The hand: a slim needle from a short tail through the centre to short
-// of the ticks, and the hub it turns on. Face units, centre at 0,0.
-const HAND = { hub: 0.25, tail: 0.5, tip: 1.5, w: 0.125 };
+// The hand: a slim baton from a short tail through the centre to short of
+// the ticks, pointed at its tip, and the hub it turns on. Its sides run
+// parallel (a needle that tapered to nothing drew its two edges as one
+// doubled line). Face units, centre at 0,0; `w` is half its width.
+const HAND = { hub: 0.25, point: 0.25, tail: 0.5, tip: 1.5, w: 0.125 };
 const HAND_PATH = [
   `M0 ${-HAND.tip}`,
-  `L${HAND.w} 0`,
-  `L0 ${HAND.tail}`,
-  `L${-HAND.w} 0`,
+  `L${HAND.w} ${-HAND.tip + HAND.point}`,
+  `L${HAND.w} ${HAND.tail}`,
+  `L${-HAND.w} ${HAND.tail}`,
+  `L${-HAND.w} ${-HAND.tip + HAND.point}`,
   "Z",
 ].join(" ");
 
-// The crown: a ring on the case, a stem, and a button with a seam round it.
-const RING = { h: 0.25, r: 0.5 };
+// The crown: a stem standing on the case and a button on it, one round
+// each (a thin ring at the foot and a seam round the button drew their
+// rims a pixel beside the next line).
 const STEM = { h: 0.75, r: 0.25 };
-const BUTTON = { h: 0.5, r: 0.5, seam: 0.25 };
+const BUTTON = { h: 0.5, r: 0.5 };
 const BUTTON_Z = TOP + STEM.h;
 // How far the button goes down its stem.
 const PRESS = 0.375;
@@ -147,11 +161,10 @@ const Round = ({ from, to, r }: { from: number; to: number; r: number }) => (
   <Slice bottom={[[0, AXIS_Y, from], r]} top={[[0, AXIS_Y, to], r]} />
 );
 
-/** The case, its dial and ticks, and the hand turning on the face. */
-const Case = ({ hand }: { hand: ReturnType<typeof onClock> }) => (
+/** The case's solid, with the dial, ticks and hand on its face. */
+const CaseBody = ({ hand }: { hand: ReturnType<typeof onClock> }) => (
   <Extrude
-    at={[-CASE.r, 0, TOP]}
-    convex
+    at={CASE_AT}
     d={disc(CASE.r)}
     depth={CASE.depth}
     palette="surface"
@@ -181,18 +194,34 @@ const Case = ({ hand }: { hand: ReturnType<typeof onClock> }) => (
   </Extrude>
 );
 
-/** The crown: the ring and stem stay, the button rides its track. */
+/**
+ * The case, its dial and ticks, and the hand turning on the face. The case
+ * never turns, so its far edge is drawn exactly: the upper half of the
+ * back circle and the two side edges where the disc is widest (the
+ * engine's convex outline is a hull of sampled points, which draws a
+ * faceted second line beside the round back edge).
+ */
+const Case = ({ hand }: { hand: ReturnType<typeof onClock> }) => (
+  <>
+    <CaseBody hand={hand} />
+    <FarEdge
+      at={CASE_AT}
+      chain={CASE_CROWN}
+      depth={CASE.depth}
+      joins={[
+        [0, CASE.r],
+        [CASE.r * 2, CASE.r],
+      ]}
+    />
+  </>
+);
+
+/** The crown: the stem stays, the button rides its track. */
 const Crown = ({ button }: { button: ReturnType<typeof onClock> }) => (
   <>
-    <Round from={TOP} r={RING.r} to={TOP + RING.h} />
     <Round from={TOP} r={STEM.r} to={BUTTON_Z} />
     <Rig pivot={[0, AXIS_Y, BUTTON_Z]} {...button}>
-      <Round from={BUTTON_Z} r={BUTTON.r} to={BUTTON_Z + BUTTON.seam} />
-      <Round
-        from={BUTTON_Z + BUTTON.seam}
-        r={BUTTON.r}
-        to={BUTTON_Z + BUTTON.h}
-      />
+      <Round from={BUTTON_Z} r={BUTTON.r} to={BUTTON_Z + BUTTON.h} />
     </Rig>
   </>
 );

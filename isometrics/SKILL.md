@@ -174,7 +174,9 @@ motion shows the resting pose.
      paint;
    - the resting drawing fits its frame;
    - the drawing is centred on the heading within 2 px;
-   - clean lines: at most 10% of the outline doubled within 0.5–2 px, in
+   - clean lines: at most 6% of the outline in sustained doubles (two
+     lines 0.5–2 px apart along a real length; tiny blobs where lines
+     meet don't count), in
      dark at 4× (`lines.png`, doubles in red in `lines-marked.png`);
    - its optical size matches the set (√(w×h) 140–175 px).
 3. **Look at `sheet.png` and `lines.png`** (open both) and go through the
@@ -243,6 +245,10 @@ Before you report an object, check it against every line.
 | A part one-frame-flashed its start pose on the first play | Parts driven by clock *state* reset when the clip changes and start at rest when held (engine-api.md) |
 | Thin tray walls read as thin plastic | Sturdy walls get thickness (≥ 0.5); thin faces are for paper |
 | Each object looked fine alone, the set didn't | Review the whole batch side by side, light and dark, before reporting |
+| A bell's body, a shackle, a needle hand drew double outlines down their curves | Front-on, a curved part is a flat face (or a clearly deep one); give a hand parallel sides, never a taper |
+| Sand drawn on the glass outline made one thick smear | Contents sit inside an inset wall, never on the container's outline |
+| A door 0.25 proud of its box doubled the arch | A door the shape of its opening shares one outline at rest |
+| A safe door at 32° in isometric looked edge-on | Isometric doors and lids open ~24–26° so their face still reads |
 
 ## Non-negotiable rules
 

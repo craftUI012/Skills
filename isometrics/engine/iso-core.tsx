@@ -1077,6 +1077,8 @@ const hull = (pts: P2[]): P2[] => {
  * Samples a face-coordinate path (absolute M L H V C Q Z) into points, curves
  * at 6 steps each, for shapes a scene needs as points (silhouettes).
  */
+const CURVE_SAMPLES = 24;
+
 const facePoints = (d: string): [number, number][] => {
   const tokens = d.match(/[MLHVCQZ]|-?\d*\.?\d+(?:e-?\d+)?/gi) ?? [];
   const out: [number, number][] = [];
@@ -1091,8 +1093,12 @@ const facePoints = (d: string): [number, number][] => {
   };
   const curve = (ctrl: [number, number][]) => {
     const pts: [number, number][] = [[cu, cv], ...ctrl];
-    for (let s = 1; s <= 6; s += 1) {
-      const t = s / 6;
+    // 24 samples per curve: the hull of these points is the silhouette a
+    // convex extrusion strokes, and with fewer (6 were used) it was a
+    // polygon that ran as a faceted second line beside the smooth back
+    // outline of every rounded part.
+    for (let s = 1; s <= CURVE_SAMPLES; s += 1) {
+      const t = s / CURVE_SAMPLES;
       // De Casteljau: lerp the control polygon down to one point.
       const work = pts.map(([u, v]): [number, number] => [u, v]);
       for (let n = work.length - 1; n > 0; n -= 1) {

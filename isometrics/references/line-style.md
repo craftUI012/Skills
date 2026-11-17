@@ -52,9 +52,12 @@ outline and no shading tricks.
 ## Clean lines (the checker measures this)
 
 Every outline is one clean line. The checker renders the resting pose in
-dark at 4× and fails it when more than 10% of the outline runs 0.5–2 px
-beside another line (`lines-marked.png` shows where, in red). Where that
-happens and what to do:
+dark at 4× and fails it when more than 6% of the outline runs 0.5–2 px
+beside another line for a sustained length (`lines-marked.png` shows
+where, in red). Tiny marks where lines meet (a brick's T-joint, a
+vertical meeting a rounded corner) are ignored: they are junctions, not
+doubles. Well-drawn objects measure 0–5%. Where doubles happen and what
+to do:
 
 - **A thickness strip too thin to read.** In the front view a solid shows
   its depth along its top edges at depth/√3; at a few tenths of a unit
@@ -76,6 +79,21 @@ happens and what to do:
 - **Two edges of different parts on the same spot.** A shutter's top on
   the disk's top, a lid seam on a body edge: overlap them exactly (one
   line) or separate them by ≥ 0.5.
+- **Curved parts front-on.** A bell's body, a padlock's shackle, a dial's
+  case: a curved side shows its depth as a strip that tapers into a
+  smudge. Make the part a flat face, or deep enough that the strip reads
+  (a stopwatch case 1.5, not 1); for a part that never moves, draw its
+  far edge exactly with `FarEdge`.
+- **Tapers converge into doubles.** A needle hand whose two edges meet at
+  a point draws one thick doubled line near the tip; use parallel sides
+  and a short pointed end.
+- **Contents inside a wall.** Sand in an hourglass, liquid in a jar,
+  papers in a tray: inset them from the container's outline (a 0.25
+  wall), never on it.
+- **A door or lid shaped like its opening** shares the opening's outline
+  at rest (one line), and shows its own edge only once it moves.
+- **Many small joints.** Brick or tile seams make T-junctions; use fewer,
+  larger units (the checker ignores junctions, not crowded seams).
 - **Lines that end in the air.** Every line ends on another line, a
   corner, or a clean occluding edge it meets at a real angle. A line
   hidden by a near-tangent curve reads as broken.

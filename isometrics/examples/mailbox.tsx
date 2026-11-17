@@ -17,6 +17,7 @@ import {
 import type { IsoKey, IsoPose, IsoTrack, Vec3 } from "./iso-core";
 import {
   ARC,
+  FarEdge,
   ICON,
   LINE,
   LineState,
@@ -81,20 +82,22 @@ const arch = (w: number, straight: number) => {
 };
 
 // The post, and the board on top of it the box is bolted to. The board
-// reaches the front of the door and half a unit past the box each side, as
-// far as the flag reaches on the right, so the drawing is even about x = 0.
+// reaches the front of the box and half a unit past it each side, as far
+// as the flag reaches on the right, so the drawing is even about x = 0.
 // It is short front to back: from the front only its edge and a little of
 // its top show, and a deep board showed as two tall rails beside the box.
 const POST = { h: 3, w: 1.5 };
-const BOARD = { d: 2, h: 0.5, w: 8.5 };
+const BOARD = { d: 2, h: 0.5, w: 8 };
 const BASE = POST.h + BOARD.h;
 
-// The box: a tunnel of thin sheet, an arch at the front, DEPTH long.
-const DOOR_T = 0.5;
+// The box: a tunnel of thin sheet, an arch at the front, DEPTH long. Its
+// front is the plane y = 0, where the door sits.
 const BODY = { straight: 2.5, w: 7 };
+const BODY_PATH = arch(BODY.w, BODY.straight);
 const DEPTH = 5;
 const BODY_TOP = BASE + BODY.straight + BODY.w / 2;
-const BODY_Y = -DOOR_T;
+const BODY_AT: Vec3 = [-BODY.w / 2, 0, BODY_TOP];
+const BODY_Y = 0;
 const BACK_Y = BODY_Y - DEPTH;
 const POST_Y = -BOARD.d / 2;
 
@@ -107,22 +110,25 @@ const MOUTH_AT: Vec3 = [-MOUTH_W / 2, BODY_Y, MOUTH_TOP];
 // The inside of the back wall, the far wall seen through the mouth.
 const FAR_AT: Vec3 = [-MOUTH_W / 2, BACK_Y + WALL, MOUTH_TOP];
 
-// The door: the arch a quarter unit proud of the box at the sides and top,
-// hinged along its bottom front edge on the board. Its pull near the top.
-const DOOR = { lip: 0.25 };
-const DOOR_W = BODY.w + DOOR.lip * 2;
-const DOOR_PATH = arch(DOOR_W, BODY.straight);
-const DOOR_TOP = BASE + BODY.straight + DOOR_W / 2;
-const DOOR_AT: Vec3 = [-DOOR_W / 2, 0, DOOR_TOP];
+// The door: a sheet the shape of the box's front, hinged along its bottom
+// edge on the board. Its pull near the top. It lies on the box's front
+// with one outline: a door a little proud and a little wider drew its
+// front edge, its back edge and the box's rim within a pixel or two of
+// each other down both curved flanks.
+const DOOR_W = BODY.w;
+const DOOR_PATH = BODY_PATH;
+const DOOR_TOP = BODY_TOP;
+const DOOR_AT: Vec3 = BODY_AT;
 const HINGE: Vec3 = [0, 0, BASE];
 const PULL = { h: 0.5, w: 1.5, y: 0.75 };
 
-// The flag, the one brand mark: down, its plate along the right side of the
-// box near the front, on a small bracket clear of the door. From the front
-// it shows end on, as a tab: the plate's end and its top. (Its arm runs
-// back behind the plate and is hidden by it, so it is not drawn.)
-const FLAG_X = BODY.w / 2 + DOOR.lip;
-const FLAG = { d: 1.5, h: 1.5, t: 0.5, y: BODY_Y - 0.5, z: BASE + 1 };
+// The flag, the one brand mark: down, its plate flat against the right
+// side of the box near the front (its inner edge is the box's side line).
+// From the front it shows end on, as a tab: the plate's end and its top.
+// (Its arm runs back behind the plate and is hidden by it, so it is not
+// drawn.)
+const FLAG_X = BODY.w / 2;
+const FLAG = { d: 1.5, h: 1.5, t: 0.5, y: BODY_Y - 0.5, z: BASE + 1.5 };
 const FLAG_AT: Vec3 = [FLAG_X, FLAG.y - FLAG.d, FLAG.z];
 
 // The frame fits the mailbox shut, from the post's foot to the top of the
@@ -194,7 +200,27 @@ const useDoorInside = (clock: MotionValue<number> | undefined, clip: Clip) => {
 
 /* ───────────────────────────── Pieces ─────────────────────────────────── */
 
-/** The post, the board on it, and the box, mouth and all. */
+// The box's outline from its foot up one side, over the arch and down
+// the other (face units): on the back plane, all of the far edge that
+// shows. Below the front's arch it lies exactly on the front's sides.
+const BODY_RIM = (() => {
+  const r = BODY.w / 2;
+  const k = r2(r * ARC);
+  const h = BODY.straight + r;
+  return [
+    `M0 ${h}`,
+    `V${r}`,
+    `C0 ${r2(r - k)} ${r2(r - k)} 0 ${r} 0`,
+    `C${r2(r + k)} 0 ${BODY.w} ${r2(r - k)} ${BODY.w} ${r}`,
+    `V${h}`,
+  ].join(" ");
+})();
+
+/**
+ * The post, the board on it, and the box. The box never moves, so its far
+ * edge is drawn exactly (the engine's convex outline is a hull of sampled
+ * points, which drew a faceted second line beside the round back edge).
+ */
 const Stand = () => (
   <>
     <Box
@@ -208,13 +234,13 @@ const Stand = () => (
       size={[BOARD.w, BOARD.d, BOARD.h]}
     />
     <Extrude
-      at={[-BODY.w / 2, BODY_Y, BODY_TOP]}
-      convex
-      d={arch(BODY.w, BODY.straight)}
+      at={BODY_AT}
+      d={BODY_PATH}
       depth={DEPTH}
       palette="surface"
       plane="left"
     />
+    <FarEdge at={BODY_AT} chain={BODY_RIM} depth={DEPTH} joins={[]} />
   </>
 );
 
@@ -252,45 +278,25 @@ const Inside = () => {
   );
 };
 
-/** The flag, down: the bracket that holds it off the box, then the plate. */
+/** The flag, down: a plate flat against the box's side. */
 const Flag = () => (
-  <>
-    <Box
-      at={[FLAG_X - DOOR.lip, FLAG_AT[1], FLAG.z + 0.5]}
-      palette="surface"
-      size={[DOOR.lip, 0.5, 0.5]}
-    />
-    <Box at={FLAG_AT} palette="main" size={[FLAG.t, FLAG.d, FLAG.h]} />
-  </>
+  <Box at={FLAG_AT} palette="main" size={[FLAG.t, FLAG.d, FLAG.h]} />
 );
 
 /**
- * The door. Upright it is a plain arch plate with its pull. Dropped past
- * edge on, its outside faces away, so the same plate is turned round on
- * its own middle (the arch is symmetric) and its inside becomes the face
- * that is drawn.
+ * The door: a flat sheet with one outline. Upright it shows its pull.
+ * Dropped past edge on, its outside faces away and its plain inside is
+ * the face that shows.
  */
-const Door = ({ inside }: { inside: boolean }) =>
-  inside ? (
-    <Rig axis="z" pivot={[0, -DOOR_T / 2, 0]} rotate={180}>
-      <Extrude
-        at={DOOR_AT}
-        convex
-        d={DOOR_PATH}
-        depth={DOOR_T}
-        palette="surface"
-        plane="left"
-      />
-    </Rig>
-  ) : (
-    <Extrude
+const Door = ({ inside }: { inside: boolean }) => (
+  <>
+    <FacePath
       at={DOOR_AT}
-      convex
       d={DOOR_PATH}
-      depth={DOOR_T}
-      palette="surface"
       plane="left"
-    >
+      style={faceFill("surface", "left")}
+    />
+    {inside ? null : (
       <FacePath
         at={DOOR_AT}
         d={roundedRect(
@@ -303,8 +309,9 @@ const Door = ({ inside }: { inside: boolean }) =>
         plane="left"
         style={faceFill("surface", "left")}
       />
-    </Extrude>
-  );
+    )}
+  </>
+);
 
 /* ───────────────────────────── Scene ──────────────────────────────────── */
 

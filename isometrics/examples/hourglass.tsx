@@ -51,26 +51,26 @@ const TIMING = {
 
 // Built standing on z = 0 about the vertical axis x = y = 0.
 
-// Two end plates, each with a collar the glass sits in, and two posts
-// between the plates in the plane y = 0.
+// Two end plates the glass stands between, and two posts between the
+// plates in the plane y = 0. No collar: a thin ring stepped between the
+// plate and the glass drew its rims a pixel beside theirs.
 const PLATE = { h: 0.5, r: 2.5 };
-const COLLAR = { h: 0.25, r: 1.5 };
 const H = 7;
 const MID = H / 2;
 const POST = { r: 0.25, x: 2 };
 
 // The glass between the plates, a body of revolution. Each bulb starts
-// at a collar 1.25 wide, swells to 1.5 just above it, and narrows to a
+// at a plate 1.25 wide, swells to 1.5 just above it, and narrows to a
 // 0.25 neck in the middle. `half` is its radius and slope at a distance
-// from the nearer collar; two cubic Hermite spans, smooth where they meet.
+// from the nearer plate; two cubic Hermite spans, smooth where they meet.
 const GLASS = {
   belly: 1.5,
   bellyAt: 0.75,
   flare: 0.75,
   foot: 1.25,
-  from: PLATE.h + COLLAR.h,
+  from: PLATE.h,
   neck: 0.25,
-  to: H - PLATE.h - COLLAR.h,
+  to: H - PLATE.h,
 };
 const REACH = MID - GLASS.from;
 
@@ -120,25 +120,40 @@ const glass: Profile = (z) => {
   return [w, -slope];
 };
 
-// Volume under the glass from its foot, tabled, so the sand's levels can
+// The glass has a wall: the sand fills the bore inside it, one wall in
+// from the outline and up from each end. Without it the sand's edge and
+// its level ring met the glass's outline along the same curve and drew one
+// thick, doubled line.
+const WALL = 0.25;
+const BORE = { from: GLASS.from + WALL, to: GLASS.to - WALL };
+// The narrowest the bore gets, at the neck (the stream's half width).
+const THROAT = 0.0625;
+
+/** The bore's radius and slope at a height. */
+const bore: Profile = (z) => {
+  const [w, slope] = glass(z);
+  return w - WALL > THROAT ? [w - WALL, slope] : [THROAT, 0];
+};
+
+// Volume under the bore from its foot, tabled, so the sand's levels can
 // be found from how much of it is where.
 const STEPS = 240;
-const DZ = (GLASS.to - GLASS.from) / STEPS;
+const DZ = (BORE.to - BORE.from) / STEPS;
 const CUM: number[] = [0];
 for (let i = 1; i <= STEPS; i += 1) {
-  const [a] = glass(GLASS.from + (i - 1) * DZ);
-  const [b] = glass(GLASS.from + i * DZ);
+  const [a] = bore(BORE.from + (i - 1) * DZ);
+  const [b] = bore(BORE.from + i * DZ);
   CUM.push(CUM[i - 1] + (Math.PI * DZ * (a * a + b * b)) / 2);
 }
 const volumeTo = (z: number) => {
-  const f = Math.min(STEPS, Math.max(0, (z - GLASS.from) / DZ));
+  const f = Math.min(STEPS, Math.max(0, (z - BORE.from) / DZ));
   const i = Math.min(STEPS - 1, Math.floor(f));
   return CUM[i] + (CUM[i + 1] - CUM[i]) * (f - i);
 };
-/** The height below which the glass holds `v`. */
+/** The height below which the bore holds `v`. */
 const levelOf = (v: number) => {
-  let lo = GLASS.from;
-  let hi = GLASS.to;
+  let lo = BORE.from;
+  let hi = BORE.to;
   for (let i = 0; i < 30; i += 1) {
     const m = (lo + hi) / 2;
     if (volumeTo(m) < v) {
@@ -153,7 +168,7 @@ const levelOf = (v: number) => {
 // The sand: piled in the lower bulb up to LEVEL, with a cone on top.
 const SAND = { level: 1.5, mound: 1.25, stream: 0.125 };
 const SAND_V = volumeTo(SAND.level);
-const TOTAL_V = volumeTo(GLASS.to);
+const TOTAL_V = volumeTo(BORE.to);
 // Once the glass is over, the same sand sits on the neck of the top bulb.
 const SLID = levelOf(volumeTo(MID) - SAND_V);
 
@@ -386,9 +401,9 @@ const Sand = ({
   if (z1 - z0 < 0.02) {
     return null;
   }
-  const { d, up } = outline(glass, z0, z1);
+  const { d, up } = outline(bore, z0, z1);
   const capZ = up ? z1 : z0;
-  const [w] = glass(capZ);
+  const [w] = bore(capZ);
   // A pile only shows on the face that looks up at the viewer.
   const piled = mound > 0.02 && (up ? pile === "z1" : pile === "z0");
   const rise = up ? mound : -mound;
@@ -414,7 +429,7 @@ const sandAt = (clip: Clip, ms: number) => {
   // Before it runs: one body of sand, moving from the cap to the neck.
   const first = {
     mound: SAND.mound * tip * (1 - slide),
-    z0: GLASS.from + (SLID - GLASS.from) * slide,
+    z0: BORE.from + (SLID - BORE.from) * slide,
     z1: SAND.level + (MID - SAND.level) * slide,
   };
   // Running: the top bulb (z below MID once over) drains into the cap end.
@@ -422,7 +437,7 @@ const sandAt = (clip: Clip, ms: number) => {
   const top = { z0: levelOf(volumeTo(MID) - left), z1: MID };
   const pileFrom = levelOf(TOTAL_V - SAND_V * flow);
   const mound = SAND.mound * Math.sqrt(flow);
-  const pile = { mound, z0: pileFrom, z1: GLASS.to };
+  const pile = { mound, z0: pileFrom, z1: BORE.to };
   const peak = pileFrom - mound;
   const head = sample(clip.head, ms);
   const tail = sample(clip.tail, ms);
@@ -464,33 +479,13 @@ const Disc = ({
   return up ? <Slice bottom={lo} top={hi} /> : <Slice bottom={hi} top={lo} />;
 };
 
-/** The bottom end (plate, then collar) or the top end (collar, then plate). */
-const End = ({ top, up }: { top: boolean; up: boolean }) => {
-  const plate = top ? (
+/** An end plate: the bottom one or the top one. */
+const End = ({ top, up }: { top: boolean; up: boolean }) =>
+  top ? (
     <Disc r={PLATE.r} up={up} z0={H - PLATE.h} z1={H} />
   ) : (
     <Disc r={PLATE.r} up={up} z0={0} z1={PLATE.h} />
   );
-  const collar = top ? (
-    <Disc r={COLLAR.r} up={up} z0={GLASS.to} z1={H - PLATE.h} />
-  ) : (
-    <Disc r={COLLAR.r} up={up} z0={PLATE.h} z1={GLASS.from} />
-  );
-  // From the end away from the viewer: the plate under its collar, or the
-  // collar under its plate.
-  const plateFirst = top !== up;
-  return plateFirst ? (
-    <>
-      {plate}
-      {collar}
-    </>
-  ) : (
-    <>
-      {collar}
-      {plate}
-    </>
-  );
-};
 
 /** A post: a thin rod from plate to plate. */
 const Post = ({ x, up }: { x: number; up: boolean }) => {

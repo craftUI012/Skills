@@ -303,8 +303,8 @@ for (const theme of ["light", "dark"]) {
 }
 
 // Clean lines: the resting pose in dark at 4×, where stray and doubled
-// lines show most. Two outlines running 0.5–2 px apart read as one dirty,
-// doubled line (a thin top strip, a part standing barely proud, stepped
+// lines show most. Two outlines running 0.5–2 px apart, for a sustained
+// length, read as one dirty, doubled line (a thin top strip, a part standing barely proud, stepped
 // rings). Writes lines.png (to look at) and lines-marked.png (the doubles
 // in red).
 {
@@ -359,13 +359,41 @@ for (const theme of ["light", "dark"]) {
     };
     scan(H, W, (y, x) => line[y * W + x], (y, x) => { mark[y * W + x] = 1; });
     scan(W, H, (x, y) => line[y * W + x], (x, y) => { mark[y * W + x] = 1; });
+    // Keep only sustained doubles: connected marked runs of 80+ device
+    // pixels. Tiny blobs are where lines meet (T-joints, a vertical
+    // meeting a rounded corner), not two lines running side by side.
+    const MIN_RUN = 80;
+    const seen = new Uint8Array(W * H);
     let marked = 0;
     let total = 0;
+    for (let i = 0; i < W * H; i += 1) total += line[i];
     for (let i = 0; i < W * H; i += 1) {
-      total += line[i];
-      if (mark[i] && line[i]) {
-        marked += 1;
-        data[i * 4] = 255; data[i * 4 + 1] = 40; data[i * 4 + 2] = 40;
+      if (!(mark[i] && line[i]) || seen[i]) continue;
+      const stack = [i];
+      const run = [];
+      seen[i] = 1;
+      while (stack.length) {
+        const j = stack.pop();
+        run.push(j);
+        const x = j % W;
+        const y = (j / W) | 0;
+        for (let dy = -1; dy <= 1; dy += 1) {
+          for (let dx = -1; dx <= 1; dx += 1) {
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+            const k = ny * W + nx;
+            if (!seen[k] && mark[k] && line[k]) {
+              seen[k] = 1;
+              stack.push(k);
+            }
+          }
+        }
+      }
+      if (run.length < MIN_RUN) continue;
+      marked += run.length;
+      for (const j of run) {
+        data[j * 4] = 255; data[j * 4 + 1] = 40; data[j * 4 + 2] = 40;
       }
     }
     g.putImageData(frame, 0, 0);
@@ -377,8 +405,8 @@ for (const theme of ["light", "dark"]) {
   }, shot.toString("base64"));
   await writeFile(join(out, "lines-marked.png"), Buffer.from(result.png, "base64"));
   pass(
-    "clean lines (near-doubled outline ≤ 10%)",
-    result.marked <= 0.1,
+    "clean lines (sustained doubled outline ≤ 6%)",
+    result.marked <= 0.06,
     `${(result.marked * 100).toFixed(1)}% of outline pixels run 0.5–2 px beside another line; see lines-marked.png`
   );
   await context.close();
