@@ -180,11 +180,13 @@ export const faceFill = (
 
 type P2 = readonly [number, number];
 
+/** Which way a → b turns about o (the cross product's sign). */
+const turn = (o: P2, a: P2, b: P2) =>
+  (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+
 /** Convex hull of screen points (Andrew's monotone chain). */
 const hull = (pts: readonly P2[]): P2[] => {
-  const sorted = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const turn = (o: P2, a: P2, b: P2) =>
-    (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const sorted = [...pts].toSorted((a, b) => a[0] - b[0] || a[1] - b[1]);
   const half = (list: readonly P2[]) => {
     const out: P2[] = [];
     for (const p of list) {
@@ -264,11 +266,11 @@ export const Slice = ({
   const hi = ring(top[0], top[1]).map((p) => project(rigged(p)) as P2);
   return (
     <g>
-      <path d={closed(hull([...lo, ...hi]))} style={faceFill(palette, "left")} />
       <path
-        d={closed(hi)}
-        style={faceFill(palette, open ? "right" : "top")}
+        d={closed(hull([...lo, ...hi]))}
+        style={faceFill(palette, "left")}
       />
+      <path d={closed(hi)} style={faceFill(palette, open ? "right" : "top")} />
     </g>
   );
 };

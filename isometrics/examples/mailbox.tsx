@@ -161,7 +161,7 @@ const beat = (t0: number): Clip => {
     [shut + 90, -5, EASE.easy],
     [shut + 220, 0],
   ];
-  return { end: shut + 220, door };
+  return { door, end: shut + 220 };
 };
 
 const INTRO = beat(TIMING.start);
@@ -182,10 +182,7 @@ const EDGE_ON = -60;
  * Whether the door has dropped past edge on, read from the clock as state
  * (which side to draw is a choice of what to write, not a pose).
  */
-const useDoorInside = (
-  clock: MotionValue<number> | undefined,
-  clip: Clip
-) => {
+const useDoorInside = (clock: MotionValue<number> | undefined, clip: Clip) => {
   const idle = useMotionValue(0);
   const [inside, setInside] = useState(false);
   useMotionValueEvent(clock ?? idle, "change", (ms) => {

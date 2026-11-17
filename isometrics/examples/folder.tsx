@@ -54,7 +54,7 @@ const GAP = 0.5;
 const R = 0.5;
 
 const FLAP = { h: 5.5 };
-const BACK = { h: 6.5, tab: 1, tabW: 3.5, shoulder: 1 };
+const BACK = { h: 6.5, shoulder: 1, tab: 1, tabW: 3.5 };
 const BACK_TOP = BACK.h + BACK.tab;
 const BACK_Y = -(BOARD + GAP);
 const BACK_AT: Vec3 = [-W / 2, BACK_Y, BACK_TOP];

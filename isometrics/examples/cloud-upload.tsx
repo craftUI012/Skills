@@ -361,7 +361,10 @@ export const CloudUpload = ({
       defaultArtClassName="w-52"
       slot="cloud-upload"
     >
-      <Rig pivot={toWorld(CLOUD.w / 2, CLOUD.h)} {...onClock(clock, cloudPose(clip), clip.end)}>
+      <Rig
+        pivot={toWorld(CLOUD.w / 2, CLOUD.h)}
+        {...onClock(clock, cloudPose(clip), clip.end)}
+      >
         <Cloud />
       </Rig>
       <Rig pivot={ARROW_BASE} {...onClock(clock, arrowPose(clip), clip.end)}>

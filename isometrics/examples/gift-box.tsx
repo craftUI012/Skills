@@ -1,6 +1,14 @@
 "use client";
 
-import { Box, EASE, FacePath, Rig, lift, roundedRect, sample } from "./iso-core";
+import {
+  Box,
+  EASE,
+  FacePath,
+  Rig,
+  lift,
+  roundedRect,
+  sample,
+} from "./iso-core";
 import type { IsoKey, IsoPose, IsoTrack, Vec3 } from "./iso-core";
 import {
   ICON,

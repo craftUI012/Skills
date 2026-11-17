@@ -102,7 +102,12 @@ const hermite = (
 
 const half = (h: number) =>
   h < GLASS.bellyAt
-    ? hermite(h, [0, GLASS.bellyAt], [GLASS.foot, GLASS.belly], [GLASS.flare, 0])
+    ? hermite(
+        h,
+        [0, GLASS.bellyAt],
+        [GLASS.foot, GLASS.belly],
+        [GLASS.flare, 0]
+      )
     : hermite(h, [GLASS.bellyAt, REACH], [GLASS.belly, GLASS.neck], [0, 0]);
 
 /** The glass's radius and slope (dw/dz) at a height. */
@@ -120,8 +125,8 @@ const STEPS = 240;
 const DZ = (GLASS.to - GLASS.from) / STEPS;
 const CUM: number[] = [0];
 for (let i = 1; i <= STEPS; i += 1) {
-  const a = glass(GLASS.from + (i - 1) * DZ)[0];
-  const b = glass(GLASS.from + i * DZ)[0];
+  const [a] = glass(GLASS.from + (i - 1) * DZ);
+  const [b] = glass(GLASS.from + i * DZ);
   CUM.push(CUM[i - 1] + (Math.PI * DZ * (a * a + b * b)) / 2);
 }
 const volumeTo = (z: number) => {
@@ -242,15 +247,20 @@ type P2 = readonly [number, number];
 const pathOf = (pts: readonly P2[]) =>
   `M${pts.map(([x, y]) => `${r2(x)},${r2(y)}`).join(" L")} Z`;
 
+/** Which way a → b turns about o (the cross product's sign). */
+const turn = (o: P2, a: P2, b: P2) =>
+  (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+
 /** Convex hull of screen points (monotone chain). */
 const hull = (pts: readonly P2[]) => {
-  const sorted = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const turn = (o: P2, a: P2, b: P2) =>
-    (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const sorted = [...pts].toSorted((a, b) => a[0] - b[0] || a[1] - b[1]);
   const side = (list: readonly P2[]) => {
     const out: P2[] = [];
     for (const p of list) {
-      while (out.length >= 2 && turn(out.at(-2) as P2, out.at(-1) as P2, p) <= 0) {
+      while (
+        out.length >= 2 &&
+        turn(out.at(-2) as P2, out.at(-1) as P2, p) <= 0
+      ) {
         out.pop();
       }
       out.push(p);
@@ -303,15 +313,20 @@ const useLathe = () => {
     return { beta, w };
   };
   const arc = (w: number, z: number, from: number, to: number) =>
-    Array.from({ length: 17 }, (_, i) => at(w, from + ((to - from) * i) / 16, z));
+    Array.from({ length: 17 }, (_, i) =>
+      at(w, from + ((to - from) * i) / 16, z)
+    );
   /** The outline from z0 up to z1, and which end faces the viewer. */
   const outline = (profile: Profile, z0: number, z1: number) => {
     const n = Math.max(2, Math.ceil((z1 - z0) / 0.125));
-    const zs = Array.from({ length: n + 1 }, (_, i) => z0 + ((z1 - z0) * i) / n);
+    const zs = Array.from(
+      { length: n + 1 },
+      (_, i) => z0 + ((z1 - z0) * i) / n
+    );
     const cs = zs.map((z) => contour(profile, z));
     const up = toward[2] >= 0;
-    const top = cs[n];
-    const foot = cs[0];
+    const { [n]: top } = cs;
+    const [foot] = cs;
     const pts: P2[] = [
       ...zs.map((z, i) => at(cs[i].w, alpha + cs[i].beta, z)),
       ...arc(

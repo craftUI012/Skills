@@ -200,10 +200,7 @@ const Pot = () => {
   const mouth = `${useId().replaceAll(":", "")}-mouth`;
   return (
     <>
-      <Slice
-        bottom={[[0, 0, 0], BODY.foot]}
-        top={[[0, 0, BODY.h], BODY.top]}
-      />
+      <Slice bottom={[[0, 0, 0], BODY.foot]} top={[[0, 0, BODY.h], BODY.top]} />
       <Slice bottom={[[0, 0, BODY.h], RIM.r]} top={[RIM_TOP, RIM.r]} />
       <clipPath id={mouth}>
         <Ring center={RIM_TOP} r={MOUTH} />
