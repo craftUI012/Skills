@@ -37,8 +37,9 @@ import type { LineStateProps } from "./iso-line";
  * 1900ms   it knocks shut, bounces 3° forward and settles (220ms)
  * 2120ms   still: the folder shut, exactly as it started
  *
- * Rest to rest, so one clip built twice: 400ms wait in view, 80ms on click.
- * Reduced motion (or autoPlay off): the folder standing shut.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true.
+ * Reduced motion, or `active` false before any play: the folder standing shut.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -311,9 +312,10 @@ export type FolderProps = LineStateProps;
 /**
  * Folder: a complete "no files yet" state with a line illustration, a
  * heading, a line of copy and a button. A document folder standing upright
- * tips its front flap open on the bottom fold, three blank sheets pop out in
- * arcs and drop swiftly back in, and it knocks shut. One fine outline, paper faces, the label on the tab the one
- * brand mark, facing the screen, no shadow. Click the folder to play it
+ * tips its front flap open on the bottom fold, three blank sheets pop out
+ * in arcs and drop swiftly back in, and it knocks shut. One fine outline,
+ * paper faces, the label on the tab the one brand mark, facing the screen,
+ * no shadow. Pass `active` (PlayOnHover, or your own state) to play it
  * again. Follows the shadcn theme.
  */
 export const Folder = ({
@@ -323,17 +325,17 @@ export const Folder = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: FolderProps) => {
   const shell = useLineShell({
+    active,
     again: AGAIN,
-    autoPlay,
     intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
   const { clip, clock } = shell;
   return (

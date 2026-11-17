@@ -30,8 +30,10 @@ import type { LineStateProps } from "./iso-line";
  *          (0.25 units), then it settles
  * 1800ms   still: the arrow on the cloud, exactly as it started
  *
- * Rest to rest, so one clip built twice: 400ms wait in view, 80ms on click.
- * Reduced motion (or autoPlay off): the cloud with its arrow, still.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true.
+ * Reduced motion, or `active` false before any play:
+ * the cloud with its arrow, still.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -322,7 +324,8 @@ export type CloudUploadProps = LineStateProps;
  * arrow on its face: the arrow crouches, shoots up past the cloud's top,
  * drops back and lands with one bounce; the cloud gives under it. One fine
  * outline, paper faces, the arrow the one brand mark, facing the screen,
- * no shadow. Click the cloud to play it again. Follows the shadcn theme.
+ * no shadow. Pass `active` (PlayOnHover, or your own state) to play it
+ * again. Follows the shadcn theme.
  */
 export const CloudUpload = ({
   heading = "Nothing uploaded yet",
@@ -331,17 +334,17 @@ export const CloudUpload = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: CloudUploadProps) => {
   const shell = useLineShell({
+    active,
     again: AGAIN,
-    autoPlay,
     intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
   const { clip, clock } = shell;
   return (

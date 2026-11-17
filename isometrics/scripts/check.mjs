@@ -11,11 +11,13 @@
  *   node check.mjs <url> [--out dir] [--duration ms] [--times 0,200,400]
  *                        [--dark-class dark] [--zoom 2]
  *
- *   <url>        a page that renders the object alone (one per object)
+ *   <url>        a page that renders the object alone, wrapped in
+ *                <PlayOnHover> (or wired to `active` on hover): the check
+ *                plays the beat by hovering it
  *   --out        where frames, sheet.png and report.json go (default
  *                ./iso-check/<last path segment of the url>)
- *   --duration   the replay's length in ms, wait + beat (default 1600)
- *   --times      the frames to capture, ms after the replay click
+ *   --duration   the beat's length in ms, settle included (default 1600)
+ *   --times      the frames to capture, ms after the hover
  *                (default 0, 25, 50, 75 and 100% of --duration, then +600)
  *   --dark-class the class your app puts on <html> for dark (default "dark";
  *                "" to rely on prefers-color-scheme alone)
@@ -247,10 +249,8 @@ for (const theme of ["light", "dark"]) {
     rest = await measure(page);
     restLight = await shoot(page, "light-rest.png");
   }
-  // Replay on click and step the beat.
-  const button = art.locator("button").first();
-  const replays = (await button.count()) > 0;
-  if (replays) await button.click();
+  // Play it by hovering (PlayOnHover turns `active` on), and step the beat.
+  await art.hover();
   let at = 0;
   for (const t of times) {
     await page.clock.runFor(Math.max(0, t - at));
@@ -261,12 +261,19 @@ for (const theme of ["light", "dark"]) {
   }
   if (theme === "light") {
     endLight = frames.light.at(-1).shot;
-    pass("replays on click", replays, replays ? "" : "no button in the art");
+    const buttons = await art.locator("button").count();
+    pass("no button inside the art (safe in links and buttons)", buttons === 0, buttons ? `${buttons} button(s) in the art` : "");
     let moved = 0;
     for (const f of frames.light.slice(1)) {
       moved = Math.max(moved, await diff(page, frames.light[0].shot, f.shot));
     }
-    pass("the beat moves", moved > 0.002, `up to ${(moved * 100).toFixed(2)}% of pixels changed during the beat`);
+    pass(
+      "plays when active (hover)",
+      moved > 0.002,
+      moved > 0.002
+        ? `up to ${(moved * 100).toFixed(2)}% of pixels changed during the beat`
+        : "nothing moved on hover: wrap the preview in <PlayOnHover> or wire `active`"
+    );
   }
   const hydration = errors.filter((e) => /hydrat|did not match|server rendered/i.test(e));
   pass(`no hydration errors (${theme})`, hydration.length === 0, hydration.slice(0, 2).join(" | "));
@@ -285,8 +292,11 @@ for (const theme of ["light", "dark"]) {
   pass("reduced motion is still", still < 0.0005, `${(still * 100).toFixed(3)}% changed`);
   const rested = await diff(page, b, restLight);
   pass("reduced motion shows the resting pose", rested < 0.003, `${(rested * 100).toFixed(3)}% differs from the rest frame`);
-  const button = await art.locator("button").count();
-  pass("reduced motion offers no replay", button === 0, button ? "a replay button is still there" : "");
+  await art.hover();
+  await page.waitForTimeout(duration);
+  const hovered = await shoot(page, "reduced-c.png");
+  const ignored = await diff(page, b, hovered);
+  pass("reduced motion ignores active", ignored < 0.0005, `${(ignored * 100).toFixed(3)}% changed on hover`);
   const hydration = errors.filter((e) => /hydrat|did not match|server rendered/i.test(e));
   pass("no hydration errors (reduced motion)", hydration.length === 0, hydration.slice(0, 2).join(" | "));
   await context.close();

@@ -47,7 +47,7 @@ brand-mark part popping in by scale), shadows that move.
 | What | Value |
 | --- | --- |
 | Wait after the art is 40% in view | 400 ms (`TIMING.start`) |
-| Wait after a click replay | 80 ms (`TIMING.again`) |
+| Wait after `active` turns true | 80 ms (`TIMING.again`) |
 | The beat itself | 1.2–2.4 s, settle included |
 | A follower's lag | 60–120 ms |
 | A hold inside the beat (to show "empty") | 250–400 ms |
@@ -84,8 +84,9 @@ At the top of the object file, before any geometry:
  *  …       <each movement, caused by the one before>
  * 1400ms   still: <resting pose, exactly as it started | the end state>
  *
- * Rest to rest, so one clip built twice: 400ms in view, 80ms on click.
- * Reduced motion (or autoPlay off): <the resting pose>.
+ * Rest to rest, so one clip built twice: 400ms in view, 80ms when
+ * `active` turns true.
+ * Reduced motion, or `active` false before any play: <the resting pose>.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = { again: 80, start: 400 };
@@ -118,7 +119,8 @@ const partPose = (clip: Clip) => (ms: number): IsoPose => ({
 ```
 
 `onClock` gives the rig the clock while it plays and holds the pose at
-`clip.end` when it doesn't (reduced motion, autoPlay off, server render).
+`clip.end` when it doesn't (reduced motion, `active` false before the
+first play, server render).
 
 ## 5. Rest to rest, or one way
 

@@ -50,6 +50,21 @@ of motion) and waits for your pick, then builds the object as a complete
 state (illustration, heading, copy, button), renders it in light and dark,
 runs `scripts/check.mjs`, looks at the frames and fixes what fails.
 
+### Control the motion from your code
+
+Every object plays one beat of motion, and your code decides when:
+
+```tsx
+<Folder />                                   // once, when it scrolls into view
+<PlayOnHover><Folder /></PlayOnHover>        // on hover, focus and touch
+<Folder active={uploadDone} onPlayEnd={reset} />  // each time `active` turns true
+<Folder active={false} />                    // still until you say
+<Folder heading="" description="" actionLabel="" artClassName="w-16" />  // the art alone, any size
+```
+
+There's no button inside the art, so it's safe inside links and buttons,
+and visitors who ask for reduced motion always see it at rest.
+
 ### What your project needs
 
 - React with Tailwind CSS and shadcn/ui (`@/lib/utils` and the `Button`

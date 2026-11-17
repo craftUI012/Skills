@@ -79,10 +79,11 @@ viewer (a flap, a door, a lid), **z** turns about the vertical.
 | `FarEdge({ at, depth, chain, joins })` | the far edge of a straight-on non-convex extrusion (line-style.md) |
 | `r2(n)` | round to 2 decimals (for poses and paths) |
 | `useReduced()` | reduced motion, hydration-safe |
-| `useLineShell({ autoPlay, loop, replayOnClick, intro, again, hold? })` | the in-view clock and the clips; returns `{ clip, clock, ref, replay, canReplay }` |
+| `useLineShell({ active, onPlayEnd, loop, intro, again, hold? })` | the clock and the clips: `active` left out plays `intro` once in view; passed, plays `again` each time it turns true (a start during a beat waits for it to settle); returns `{ clip, clock, ref }` |
 | `onClock(clock, pose, rest)` | rig props: animated, or held at `rest` |
 | `lineStageStyle(variant)` | the stage overrides (the kit applies it) |
-| `LineState({ slot, bounds, shell, props, icon?, buttonVariant?, defaultArtClassName?, stageClassName?, children })` | the complete state: stage, `FRONT_POSE` rig, replay button, heading, copy, action |
+| `LineState({ slot, bounds, shell, props, icon?, buttonVariant?, defaultArtClassName?, stageClassName?, children })` | the complete state: stage, `FRONT_POSE` rig, heading, copy, action (no button in the art) |
+| `PlayOnHover({ children })` | passes `active` to its one child on hover, focus and touch |
 | `LineStateProps` | the props every object takes |
 | `ICON` | button icon paths: `plus`, `upload`, `arrowLeft`, `refresh` |
 
@@ -118,12 +119,12 @@ export const Thing = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: ThingProps) => {
-  const shell = useLineShell({ again: AGAIN, autoPlay, intro: INTRO, loop, replayOnClick });
+  const shell = useLineShell({ active, again: AGAIN, intro: INTRO, loop, onPlayEnd });
   const { clip, clock } = shell;
   return (
     <LineState

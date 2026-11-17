@@ -34,9 +34,10 @@ import type { LineStateProps } from "./iso-line";
  *  840ms   the left leaf follows, 100ms behind, the mirror image
  * 1480ms   still: the grown sprout, both leaves open
  *
- * One way: the resting pose is the grown sprout. A click first sinks it
- * back into the soil (220ms), then grows it again.
- * Reduced motion (or autoPlay off): the grown sprout, nothing moves.
+ * One way: the resting pose is the grown sprout. Each play after the
+ * first sinks it back into the soil (220ms), then grows it again.
+ * Reduced motion, or `active` false before any play: the grown sprout,
+ * nothing moves.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -281,11 +282,12 @@ const Sprout = ({ clip, ms }: { clip: Clip; ms: number }) => {
 export type SproutPotProps = LineStateProps;
 
 /**
- * Sprout pot: a complete "no projects yet" state with a line
- * illustration, a heading, a line of copy and a button. A sprout grows
- * out of the soil of a small flower pot and opens two leaves. One fine
- * outline, paper faces, the leaves the one brand mark, facing the screen,
- * no shadow. Click the pot to grow it again. Follows the shadcn theme.
+ * Sprout pot: a complete "no projects yet" state with a line illustration,
+ * a heading, a line of copy and a button. A sprout grows out of the soil
+ * of a small flower pot and opens two leaves. One fine outline, paper
+ * faces, the leaves the one brand mark, facing the screen, no shadow. Pass
+ * `active` (PlayOnHover, or your own state) to play it again. Follows the
+ * shadcn theme.
  */
 export const SproutPot = ({
   heading = "No projects yet",
@@ -294,17 +296,17 @@ export const SproutPot = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: SproutPotProps) => {
   const shell = useLineShell({
+    active,
     again: AGAIN,
-    autoPlay,
     intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
   const { clip, clock } = shell;
   const ms = useBeatTime(clock, clip.end);

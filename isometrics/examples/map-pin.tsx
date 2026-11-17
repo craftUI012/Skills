@@ -30,8 +30,9 @@ import type { LineStateProps } from "./iso-line";
  * 1060ms   one small bounce (0.25 units), then it settles
  * 1380ms   still: standing straight on its spot, exactly as it started
  *
- * Rest to rest, so one clip built twice: 400ms wait in view, 80ms on click.
- * Reduced motion (or autoPlay off): the pin standing still.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true.
+ * Reduced motion, or `active` false before any play: the pin standing still.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -192,8 +193,8 @@ export type MapPinProps = LineStateProps;
  * heading, a line of copy and a button. A map pin on its empty spot hops
  * once and lands with one bounce; the spot widens as it lands. One fine
  * outline, paper faces, the dot in the head the one brand mark, facing the
- * screen, no shadow. Click the pin to play it again. Follows the shadcn
- * theme.
+ * screen, no shadow. Pass `active` (PlayOnHover, or your own state) to
+ * play it again. Follows the shadcn theme.
  */
 export const MapPin = ({
   heading = "No locations yet",
@@ -202,17 +203,17 @@ export const MapPin = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: MapPinProps) => {
   const shell = useLineShell({
+    active,
     again: AGAIN,
-    autoPlay,
     intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
   const { clip, clock } = shell;
   return (

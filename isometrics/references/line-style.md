@@ -152,8 +152,11 @@ so you can apply the rule to objects it never mentions.
   (`actionLabel=""`).
 - **Optical padding**: the label's side of an icon button gets 2 px more
   than the icon's side (the kit does this).
-- **The art replays in a real `<button>`** with a label, a focus ring, and
-  no button at all when it can't replay (reduced motion).
+- **No button in the art.** Playing is the caller's: `active` (each time
+  it turns true) and `onPlayEnd`. A click-to-replay button inside the art
+  made a button inside a button the moment someone put the object in a
+  link or a card, so it was removed (2026-11-17). `PlayOnHover` gives the
+  hover, focus and touch case in one wrapper.
 - **Copy budgets**: heading ≤ 28 characters, description one or two short
   sentences, button ≤ 22 characters. Plain words, no exclamation marks.
 

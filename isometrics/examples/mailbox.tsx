@@ -46,8 +46,9 @@ import type { LineStateProps } from "./iso-line";
  * 1930ms   still: the mailbox shut, exactly as it started; the flag never
  *          moves (no mail, so it stays down)
  *
- * Rest to rest, so one clip built twice: 400ms wait in view, 80ms on click.
- * Reduced motion (or autoPlay off): the mailbox standing shut.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true.
+ * Reduced motion, or `active` false before any play: the mailbox standing shut.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -314,8 +315,8 @@ export type MailboxProps = LineStateProps;
  * heading, a line of copy and a button. A mailbox on its post drops its
  * door open, shows it holds nothing, and swings the door shut. One fine
  * outline, paper faces, the flag (down) the one brand mark, facing the
- * screen, no shadow. Click the mailbox to play it again. Follows the
- * shadcn theme.
+ * screen, no shadow. Pass `active` (PlayOnHover, or your own state) to
+ * play it again. Follows the shadcn theme.
  */
 export const Mailbox = ({
   heading = "No mail yet",
@@ -324,17 +325,17 @@ export const Mailbox = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: MailboxProps) => {
   const shell = useLineShell({
+    active,
     again: AGAIN,
-    autoPlay,
     intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
   const { clip, clock } = shell;
   const inside = useDoorInside(clock, clip);

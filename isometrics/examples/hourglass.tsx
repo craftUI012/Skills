@@ -37,8 +37,9 @@ import type { LineStateProps } from "./iso-line";
  * 2450ms   still: sand piled in the lower bulb, exactly as it started
  *
  * Rest to rest (the glass is the same both ways up), so one clip built
- * twice: 400ms wait in view, 80ms on click.
- * Reduced motion (or autoPlay off): the hourglass standing still.
+ * twice: 400ms wait in view, 80ms when `active` turns true.
+ * Reduced motion, or `active` false before any play: the hourglass
+ * standing still.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -540,12 +541,12 @@ const Body = ({ clip, ms }: { clip: Clip; ms: number }) => {
 export type HourglassProps = LineStateProps;
 
 /**
- * Hourglass: a complete "nothing here yet" state with a line
- * illustration, a heading, a line of copy and a button. An hourglass is
- * turned over and its sand runs down into the lower bulb, ending exactly
- * as it started. One fine outline, paper faces, the sand the one brand
- * mark, facing the screen, no shadow. Click the hourglass to play it
- * again. Follows the shadcn theme.
+ * Hourglass: a complete "nothing here yet" state with a line illustration,
+ * a heading, a line of copy and a button. An hourglass is turned over and
+ * its sand runs down into the lower bulb, ending exactly as it started.
+ * One fine outline, paper faces, the sand the one brand mark, facing the
+ * screen, no shadow. Pass `active` (PlayOnHover, or your own state) to
+ * play it again. Follows the shadcn theme.
  */
 export const Hourglass = ({
   heading = "Nothing here yet",
@@ -554,17 +555,17 @@ export const Hourglass = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: HourglassProps) => {
   const shell = useLineShell({
+    active,
     again: AGAIN,
-    autoPlay,
     intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
   const { clip, clock } = shell;
   const ms = useBeatTime(clock, clip.end);

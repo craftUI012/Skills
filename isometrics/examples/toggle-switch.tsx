@@ -29,8 +29,9 @@ import type { LineStateProps } from "./iso-line";
  *          with a 7% squash
  * 1860ms   still: off, exactly as it started
  *
- * Rest to rest, so one clip built twice: 400ms wait in view, 80ms on click.
- * Reduced motion (or autoPlay off): the switch resting off.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true.
+ * Reduced motion, or `active` false before any play: the switch resting off.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -209,8 +210,9 @@ export type ToggleSwitchProps = LineStateProps;
  * illustration, a heading, a line of copy and a button. A pill switch,
  * off: its knob slides toward on, is stopped a third of the way with a
  * small bump, and slides back. One fine outline, paper faces, the "O" on
- * the track the one brand mark, facing the screen, no shadow. Click the
- * switch to play it again. Follows the shadcn theme.
+ * the track the one brand mark, facing the screen, no shadow. Pass
+ * `active` (PlayOnHover, or your own state) to play it again. Follows the
+ * shadcn theme.
  */
 export const ToggleSwitch = ({
   heading = "This feature is off",
@@ -219,17 +221,17 @@ export const ToggleSwitch = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: ToggleSwitchProps) => {
   const shell = useLineShell({
+    active,
     again: AGAIN,
-    autoPlay,
     intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
   const { clip, clock } = shell;
   const markAt: Vec3 = [ON_X, 0, MID_Z];

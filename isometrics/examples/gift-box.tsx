@@ -39,8 +39,9 @@ import type { LineStateProps } from "./iso-line";
  *          units) and sits (200ms)
  * 1440ms   still: the box shut, exactly as it started
  *
- * Rest to rest, so one clip built twice: 400ms wait in view, 80ms on click.
- * Reduced motion (or autoPlay off): the box standing shut.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true.
+ * Reduced motion, or `active` false before any play: the box standing shut.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -245,8 +246,8 @@ export type GiftBoxProps = LineStateProps;
  * heading, a line of copy and a button. A gift box lifts its lid to peek
  * inside, shows it empty, and drops the lid back on with one small bounce.
  * One fine outline, paper faces, the bow the one brand mark, facing the
- * screen, no shadow. Click the box to play it again. Follows the shadcn
- * theme.
+ * screen, no shadow. Pass `active` (PlayOnHover, or your own state) to
+ * play it again. Follows the shadcn theme.
  */
 export const GiftBox = ({
   heading = "No rewards yet",
@@ -255,17 +256,17 @@ export const GiftBox = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: GiftBoxProps) => {
   const shell = useLineShell({
+    active,
     again: AGAIN,
-    autoPlay,
     intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
   const { clip, clock } = shell;
   return (

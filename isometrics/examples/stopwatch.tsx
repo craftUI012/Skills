@@ -31,8 +31,10 @@ import type { LineStateProps } from "./iso-line";
  *          on 12 (300ms)
  * 1820ms   still: the hand at 12, exactly as it started
  *
- * Rest to rest, so one clip built twice: 400ms wait in view, 80ms on click.
- * Reduced motion (or autoPlay off): the stopwatch still, the hand at 12.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true.
+ * Reduced motion, or `active` false before any play:
+ * the stopwatch still, the hand at 12.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -207,7 +209,8 @@ export type StopwatchProps = LineStateProps;
  * a heading, a line of copy and a button. Its crown is pressed and the
  * hand runs once round the dial, landing back on 12. One fine outline,
  * paper faces, the hand the one brand mark, facing the screen, no shadow.
- * Click the stopwatch to play it again. Follows the shadcn theme.
+ * Pass `active` (PlayOnHover, or your own state) to play it again. Follows
+ * the shadcn theme.
  */
 export const Stopwatch = ({
   heading = "No time tracked",
@@ -216,17 +219,17 @@ export const Stopwatch = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: StopwatchProps) => {
   const shell = useLineShell({
+    active,
     again: AGAIN,
-    autoPlay,
     intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
   const { clip, clock } = shell;
   return (

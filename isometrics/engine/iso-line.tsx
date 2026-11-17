@@ -2,8 +2,15 @@
 
 import { useInView, useMotionValueEvent } from "motion/react";
 import type { MotionValue } from "motion/react";
-import type { CSSProperties, ReactNode } from "react";
-import { useRef, useState, useSyncExternalStore } from "react";
+import type { CSSProperties, ReactElement, ReactNode } from "react";
+import {
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -33,7 +40,8 @@ import type {
  *   - LINE, the one outline for marks a file strokes itself, and Edge, a
  *     straight 3D edge sent through the rigs around it;
  *   - useReduced, the hydration-safe reduced-motion read;
- *   - useLineShell, the in-view clock, the intro and replay clips, and loop;
+ *   - useLineShell, the clock driven by `active`, its clips, loop and
+ *     onPlayEnd; PlayOnHover, which drives `active` from hover and focus;
  *   - lineStageStyle, the paper walls, the pixel outline, no rim, no
  *     hairline contour;
  *   - LineState, the complete empty state: the art (a real button that
@@ -305,23 +313,33 @@ export interface LineClip {
 }
 
 /**
- * The in-view clock and its clips. `intro` plays once the art is 40% in
- * view (it waits ~400 ms); `again` plays on a click (it starts at ~80 ms so
- * a click answers at once). A clip that ends where it started can be the
- * same beat built twice; one that ends elsewhere needs an `again` that
- * first undoes it.
+ * The clock and its clips, driven by `active`.
+ *
+ * - `active` left out: the beat plays once when the art is 40% in view
+ *   (`intro`, which waits ~400 ms), and again after `hold` if `loop`.
+ * - `active` passed: the caller decides. The beat plays each time `active`
+ *   turns true (`again`, which starts at ~80 ms), never on its own; until
+ *   the first play the object holds its resting pose. A start asked for
+ *   while a beat is still running waits until that beat has settled, so
+ *   fast toggling never stutters, and turning `active` off mid-beat lets
+ *   the beat finish.
+ * - Reduced motion: nothing plays; the resting pose holds.
+ *
+ * `onPlayEnd` fires once each time a beat settles. A clip that ends where
+ * it started can be the same beat built twice; one that ends elsewhere
+ * needs an `again` that first undoes it.
  */
 export const useLineShell = <C extends LineClip>({
-  autoPlay,
-  loop,
-  replayOnClick,
+  active,
+  onPlayEnd,
+  loop = false,
   intro,
   again,
   hold = 5200,
 }: {
-  autoPlay: boolean;
-  loop: boolean;
-  replayOnClick: boolean;
+  active?: boolean;
+  onPlayEnd?: () => void;
+  loop?: boolean;
   intro: C;
   again: C;
   /** Rest before a loop starts again, ms. */
@@ -330,12 +348,14 @@ export const useLineShell = <C extends LineClip>({
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { amount: 0.4 });
   const reduced = useReduced();
-  const still = reduced || !autoPlay;
+  const controlled = active !== undefined;
   const [run, setRun] = useState(0);
-  // The engine's clock: ms since this run started, frozen when not running.
-  const clock = useClock(inView && !still, run);
+  // Run 0 is the in-view intro (uncontrolled only); every later run is a
+  // play asked for by `active`, a loop, or a waiting start.
+  const running = !reduced && inView && (run > 0 || !controlled);
+  const clock = useClock(running, run);
   const clip = run === 0 ? intro : again;
-  // One new run per finished run, however many frames or clicks ask.
+  // One new run per finished run, however many frames ask.
   const asked = useRef(-1);
   const next = () => {
     if (asked.current !== run) {
@@ -343,24 +363,46 @@ export const useLineShell = <C extends LineClip>({
       setRun((n) => n + 1);
     }
   };
+  // A start that came in while a beat was still running.
+  const waiting = useRef(false);
+  const ended = useRef(-1);
   useMotionValueEvent(clock, "change", (ms) => {
-    if (loop && !still && ms >= clip.end + hold) {
+    if (ms < clip.end) {
+      return;
+    }
+    if (ended.current !== run && (run > 0 || !controlled)) {
+      ended.current = run;
+      onPlayEnd?.();
+    }
+    if (waiting.current) {
+      waiting.current = false;
+      next();
+    } else if (loop && (active ?? true) && ms >= clip.end + hold) {
       next();
     }
   });
-  const canReplay = replayOnClick && !still;
-  const replay = () => {
-    if (canReplay && clock.get() >= clip.end) {
+  // `active` turning true asks for a play.
+  const was = useRef<boolean | null>(null);
+  useEffect(() => {
+    const rose = active === true && was.current !== true;
+    was.current = active ?? null;
+    if (!rose || reduced) {
+      return;
+    }
+    const busy = (run > 0 || !controlled) && running && clock.get() < clip.end;
+    if (busy) {
+      waiting.current = true;
+    } else {
       next();
     }
-  };
+  });
+  // Held at rest: reduced motion, or controlled and never played yet.
+  const held = reduced || (controlled && run === 0);
   return {
-    canReplay,
     clip,
-    /** Undefined when still: rigs then hold their resting pose. */
-    clock: still ? undefined : clock,
+    /** Undefined when held: rigs then hold their resting pose. */
+    clock: held ? undefined : clock,
     ref,
-    replay,
   };
 };
 
@@ -460,12 +502,12 @@ export interface LineStateProps {
   variant?: IsoVariant;
   /** Line weight: the default 0.23 is a 1 px outline at any size. */
   strokeWidth?: number;
-  /** Plays the beat once when it scrolls into view. Off shows the resting pose. */
-  autoPlay?: boolean;
-  /** Plays it again after a long hold. Off (default) suits a state people sit in front of. */
+  /** Plays the beat each time it turns true (hover, focus, an upload finishing…). Left out, the beat plays once when the art scrolls into view. Pass false to keep it still until you say. */
+  active?: boolean;
+  /** Called each time the beat has played and settled. */
+  onPlayEnd?: () => void;
+  /** Plays it again after a long hold (while `active`, or always when `active` is left out). Off (default) suits a state people sit in front of. */
   loop?: boolean;
-  /** Clicking the art plays the beat again. */
-  replayOnClick?: boolean;
   /** Accessible description of the art. Without it the art is decorative and the copy speaks for it. */
   title?: string;
   /** Classes for the art alone; size it with width (it keeps its aspect ratio). */
@@ -480,8 +522,9 @@ const BUTTON =
   "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
 
 /**
- * The complete state: the stage (in a real button that replays, when it
- * can), then the heading, the line of copy and the action. `slot` names the
+ * The complete state: the stage, then the heading, the line of copy and the
+ * action. The art is a plain element (no button), so it is safe inside a
+ * link or a button; playing it is up to `active`. `slot` names the
  * data-slot attributes (`<slot>` and `<slot>-art`).
  */
 export const LineState = ({
@@ -559,18 +602,7 @@ export const LineState = ({
         data-slot={`${slot}-art`}
         ref={shell.ref}
       >
-        {shell.canReplay ? (
-          <button
-            aria-label={`${props.title ?? "Illustration"}. Press to play it again.`}
-            className="block w-full cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={shell.replay}
-            type="button"
-          >
-            {art}
-          </button>
-        ) : (
-          art
-        )}
+        {art}
       </div>
       {props.heading ? (
         <p className="mt-3 text-xl font-medium tracking-tight text-foreground">
@@ -583,6 +615,38 @@ export const LineState = ({
         </p>
       ) : null}
       {actions ? <div className="mt-6">{actions}</div> : null}
+    </div>
+  );
+};
+
+/* ------------------------------- Play on hover --------------------------- */
+
+/**
+ * Plays the object inside it while the pointer is over it (touch counts:
+ * a press enters) or while it holds focus: it passes `active` to its one
+ * child. Use it as is, or wire `active` to your own state.
+ *
+ *   <PlayOnHover><Folder /></PlayOnHover>
+ */
+export const PlayOnHover = ({
+  children,
+  className,
+}: {
+  children: ReactElement<{ active?: boolean }>;
+  className?: string;
+}) => {
+  const [active, setActive] = useState<boolean | undefined>();
+  const on = () => setActive(true);
+  const off = () => setActive(false);
+  return (
+    <div
+      className={className}
+      onBlur={off}
+      onFocus={on}
+      onPointerEnter={on}
+      onPointerLeave={off}
+    >
+      {isValidElement(children) ? cloneElement(children, { active }) : children}
     </div>
   );
 };

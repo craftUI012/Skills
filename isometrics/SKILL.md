@@ -48,10 +48,25 @@ and the `motion` package.
    `npx shadcn@latest add button`.
 3. For the checker, Playwright: `npm i -D playwright` and
    `npx playwright install chromium` (or it uses an installed Chrome).
-4. A page to render one object alone, e.g.
-   `app/isometrics-preview/<name>/page.tsx` in Next.js, or a route in the
-   project's own router. Create it per object; tell the user it is a
-   preview page they can delete.
+4. A page to render one object alone, wrapped in `PlayOnHover` (the
+   checker plays it by hovering), e.g. `app/isometrics-preview/<name>/page.tsx`
+   in Next.js, or a route in the project's own router:
+
+   ```tsx
+   import { PlayOnHover } from "@/components/isometrics/iso-line";
+   import { MapPin } from "@/components/isometrics/map-pin";
+
+   export default function Page() {
+     return (
+       <main className="flex min-h-svh items-center justify-center p-10">
+         <PlayOnHover><MapPin /></PlayOnHover>
+       </main>
+     );
+   }
+   ```
+
+   Create it per object; tell the user it is a preview page they can
+   delete.
 
 Never edit the engine to make one object work. If a shape is truly
 missing, add a helper inside the object's own file, built from 3D, and
@@ -123,9 +138,10 @@ Rules that decide parts (all in `references/line-style.md`):
 Pick the move from the message (`references/motion.md`), then write the
 storyboard comment at the top of the file **before** the drawing code:
 times, what moves, how far, why. Every value in a named constant. The
-beat waits 400 ms after the art scrolls into view, lasts 1.2–2.4 s, plays
-once, and a click replays it (80 ms delay). Reduced motion shows the
-resting pose.
+beat waits 400 ms after the art scrolls into view, lasts 1.2–2.4 s and
+plays once. When the user's code passes `active`, it plays each time
+`active` turns true instead (80 ms delay), never on its own. Reduced
+motion shows the resting pose.
 
 ### Stage 5 · Build, render, check, look, fix
 
@@ -138,12 +154,13 @@ resting pose.
    node <skill>/scripts/check.mjs http://localhost:3000/<preview-path>/<name> --duration <wait+beat ms>
    ```
 
-   It renders light and dark, replays the beat on a fake clock, saves
-   frames at 0, 25, 50, 75, 100 % and after, and checks:
+   It renders light and dark, plays the beat by hovering the art on a fake
+   clock (so the preview page must wrap the object in `<PlayOnHover>`),
+   saves frames at 0, 25, 50, 75, 100 % and after, and checks:
    - no hydration or console errors, in light, dark and reduced motion;
-   - the click replays it and the beat moves;
+   - it plays when active, and there is no button inside the art;
    - the beat settles exactly back to its resting pose;
-   - reduced motion is still, shows the resting pose, offers no replay;
+   - reduced motion is still, shows the resting pose, ignores `active`;
    - every outline is about 1 px; no filters, glow, shadows or gradient
      paint;
    - the resting drawing fits its frame;
@@ -206,12 +223,26 @@ resting pose.
 6. **Props, not forks.** Copy, tone, variant, stroke width, motion
    switches are props with doc comments (`LineStateProps`). Never name a
    content prop `title`: it is the accessible name.
-7. **Accessible.** The art is decorative unless `title` is given; the
-   replay is a real `<button>` with a label; reduced motion is respected
-   without a hydration error (`useReduced`, never motion's
-   `useReducedMotion` in the first render).
-8. **One beat, then still.** No idle loops by default (`loop` is opt-in);
+7. **Accessible and embeddable.** The art is decorative unless `title` is
+   given; it never contains a `<button>`, so it is safe inside links and
+   buttons; reduced motion is respected without a hydration error
+   (`useReduced`, never motion's `useReducedMotion` in the first render).
+8. **One beat, then still; the user's code is in charge.** No idle loops
+   by default (`loop` is opt-in). Every object takes `active` (play each
+   time it turns true) and `onPlayEnd` (called when the beat settles);
    people sit in front of an empty state.
+
+## Using an object (tell the user this)
+
+```tsx
+<Folder />                                  // plays once when it scrolls into view
+<PlayOnHover><Folder /></PlayOnHover>       // plays on hover, focus and touch
+<Folder active={uploadDone} onPlayEnd={() => setUploadDone(false)} />  // your state
+<Folder active={false} />                   // still until you say
+<Folder heading="" description="" actionLabel="" artClassName="w-16" />  // the art alone, any size
+```
+
+Below about 40 px fine details start to crowd; 48 px and up reads well.
 
 ## Examples
 

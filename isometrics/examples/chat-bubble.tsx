@@ -33,8 +33,10 @@ import type { LineStateProps } from "./iso-line";
  *          bounces 0.15 units and settles
  * 1500ms   still: three dots in a row, exactly as it started
  *
- * Rest to rest, so one clip built twice: 400ms wait in view, 80ms on click.
- * Reduced motion (or autoPlay off): the bubble with its dots, still.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true.
+ * Reduced motion, or `active` false before any play:
+ * the bubble with its dots, still.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -217,8 +219,8 @@ export type ChatBubbleProps = LineStateProps;
  * illustration, a heading, a line of copy and a button. A speech bubble
  * with three dots that hop once in a wave, like someone typing, then stop.
  * One fine outline, paper faces, the dots the one brand mark, facing the
- * screen, no shadow. Click the bubble to play it again. Follows the
- * shadcn theme.
+ * screen, no shadow. Pass `active` (PlayOnHover, or your own state) to
+ * play it again. Follows the shadcn theme.
  */
 export const ChatBubble = ({
   heading = "No messages yet",
@@ -227,17 +229,17 @@ export const ChatBubble = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   ...rest
 }: ChatBubbleProps) => {
   const shell = useLineShell({
+    active,
     again: AGAIN,
-    autoPlay,
     intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
   const { clip, clock } = shell;
   return (
