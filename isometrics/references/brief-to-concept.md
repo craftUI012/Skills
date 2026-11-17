@@ -100,7 +100,7 @@ Subject: photos. Uses: empty (no photos yet) or blocked (private album).
 | Brief | ★ object and beat |
 |---|---|
 | empty cart | shopping bag: the handles lift and drop, the bag sags empty |
-| no files | folder: the front flap tips forward, the folder is empty, it shuts |
+| no files | folder: the front flap tips forward, three blank pages pop out in arcs, drop swiftly back in, it shuts |
 | no messages | chat bubble: three dots wave once, then still |
 | no API keys | key: it slides into a lock cylinder, turns 30°, comes back out |
 | no events | calendar: the top page lifts and drops back; the grid is blank |

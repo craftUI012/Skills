@@ -221,7 +221,7 @@ technique is closest to what you need.
 | File | State | Technique worth copying |
 | --- | --- | --- |
 | `map-pin.tsx` | no locations | drop with one bounce; squash and stretch that keeps volume; a level `Ring` that reacts |
-| `folder.tsx` | no files | a hinged flap that opens and shuts without crossing its housing |
+| `folder.tsx` | no files | a hinged flap that opens and shuts without crossing its housing; three pages popping out on arcs (fast rise, slower drift) and pulled swiftly back, hidden by paint order |
 | `gift-box.tsx` | no rewards | a lid that lifts, peeks and drops back with one bounce |
 | `mailbox.tsx` | no mail | a rounded-top body; a door dropping open about its bottom hinge |
 | `toggle-switch.tsx` | blocked: feature off | "tries and stops": a knob that slides partway and returns |
