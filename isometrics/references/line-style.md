@@ -83,6 +83,19 @@ happens and what to do:
 Look at `lines.png` yourself as well: the measure catches doubles, not
 everything that reads as dirty.
 
+## Walls and shades
+
+- **Sturdy walls have thickness.** A tray or a box wall drawn as a single
+  face reads as thin plastic; give walls that should feel solid ≥ 0.5 of
+  thickness (their rims then show a clear top). Single faces are for
+  paper, labels and screens.
+- **An `Extrude` has one side shade.** In the isometric view its top and
+  its end wall share that shade, so a lid that should be the lightest
+  face is better a `Box` or a separate top face.
+- **Inside faces** (a box's mouth, a slot, a window) take a shade darker
+  than the walls through the `--iso-*` colours (e.g.
+  `oklch(from var(--iso-surface-right-c) …)`), never a raw colour.
+
 ## Detail: three tiers
 
 "Not realistic" usually means only the first tier is there. Every object

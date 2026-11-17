@@ -145,6 +145,39 @@ export const Thing = ({
 export default Thing;
 ```
 
+### Parts driven by clock state (not a rig)
+
+Some parts are rebuilt from the clock rather than posed by a `Rig`: a
+plug's outline that grows out of its sleeve, ruled lines being written, a
+paint order that flips mid-beat. Read the clock into React state, and:
+
+- start at the **rest** value when the shell holds the object (`clock`
+  undefined), so a controlled object never shows its start pose;
+- **reset** that state whenever the clip changes (intro → again), or the
+  first play under `active` flashes one frame of the intro's start.
+
+```tsx
+const useBeatTime = (clock: MotionValue<number> | undefined, clip: Clip) => {
+  const [ms, setMs] = useState(clip.end);
+  useEffect(() => {
+    setMs(clock ? clock.get() : clip.end);
+    return clock?.on("change", setMs);
+  }, [clock, clip]);
+  return clock ? ms : clip.end;
+};
+```
+
+`Rig` itself reads its pose from the clock as it renders, so rigs never
+keep a stale pose.
+
+### Tooling notes
+
+- Run the checker on one object at a time: parallel runs can hang a dev
+  server. A brand-new page may 404 for a few seconds; request it once
+  first.
+- `useRef(undefined)` gets rewritten to `useRef()` by some linters, which
+  then fails the type check; use `null` as the empty value.
+
 Usage in a page:
 
 ```tsx

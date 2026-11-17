@@ -224,6 +224,26 @@ motion shows the resting pose.
 - [ ] Looks right in dark: paper faces become dark paper, the brand mark
       stays the brand.
 
+## Never again: mistakes this skill has made
+
+Each of these shipped once, was caught in review, and is now a rule.
+Before you report an object, check it against every line.
+
+| Mistake | Rule now |
+| --- | --- |
+| Boxes drawn front-on looked like flat stickers | Pick the view first: flat things front, boxy things `view="isometric"` (line-style.md) |
+| Thin top strips, barely-proud parts and stepped rings drew doubled, dirty lines | No thin strips; flush or ≥ 0.5 proud; round stacks at one radius; the checker's clean-lines test must pass, and you look at `lines.png` (dark, 4×) |
+| Objects were only an outline ("not realistic") | Three tiers of detail: form, recognisable parts, quiet marks |
+| Sizes jumped between objects in a set | Optical size 140–175 px via `defaultArtClassName` |
+| Pages flew 3 units outside the frame | Motion stays in the art's air; a little past the frame edge at most |
+| Two latches, a full-width stripe as "one brand mark" | One small mark, really one |
+| A slot over a dot, two latches over a seam read as a face | Look for accidental faces at thumbnail size |
+| A corner flip toward the viewer was invisible front-on | Turns toward the viewer read at a fraction of their angle; prefer moves in the picture plane, or go large (motion.md) |
+| A page tilted in its plane sheared at the isometric angle | In isometric view, turn a part only about its own normal or a hinge on its edge (motion.md) |
+| A part one-frame-flashed its start pose on the first play | Parts driven by clock *state* reset when the clip changes and start at rest when held (engine-api.md) |
+| Thin tray walls read as thin plastic | Sturdy walls get thickness (≥ 0.5); thin faces are for paper |
+| Each object looked fine alone, the set didn't | Review the whole batch side by side, light and dark, before reporting |
+
 ## Non-negotiable rules
 
 1. **True isometric only.** Axes at 30° to horizontal, 120° apart, equal

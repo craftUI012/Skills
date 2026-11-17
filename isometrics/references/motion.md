@@ -194,7 +194,29 @@ Rules that came from building it (`examples/folder.tsx`):
 - **The container waits for them.** The flap stays open until the last
   part is in, then shuts.
 
-## 7. Make it feel caused
+## 7. Moves that read differently than you expect
+
+- **Front view: turns toward the viewer hide.** A rotation about the
+  horizontal axis (a flap, a corner, a lid tipping toward you) is seen
+  nearly edge-on, so it reads at a fraction of its angle: a page corner
+  needed ~165° before the flip showed at all. Prefer moves in the picture
+  plane (slide, lift, swing about the depth axis), or make a toward-the-
+  viewer turn large and quick.
+- **Isometric view: in-plane tilts shear.** A page tilted about an axis
+  that isn't its own normal looks sheared, not tilted. Turn a part only
+  about its own face normal or about a hinge on one of its edges; drop
+  the tilt if neither works (the archive box's pages fly untilted).
+- **Emerging from a slot: grow out of its edge.** A page leaving a
+  printer, a card leaving a reader: clip it at the slot, or build it from
+  the slot's edge outward, so the part still inside is never drawn.
+- **Hidden inside at rest, in front when out.** Pages in a box are drawn
+  over the lid but clipped at the walls: hidden while inside, in front of
+  the lifted lid when out.
+- **Keep it in the frame's air.** The stage padding isn't clipped, but a
+  part that flies far past the frame crosses neighbouring content on a
+  real page. A little past the edge at the peak is the limit.
+
+## 8. Make it feel caused
 
 - **Something lags.** A follower (a clapper, a second leaf, a flag)
   moves 60–120 ms after its leader and a little further.
