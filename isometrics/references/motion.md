@@ -35,6 +35,7 @@ Each has limits. They are there because breaking them looked wrong.
 | **Turn** in the front plane | `rotate` about the y axis (the front plane after `FRONT_POSE`) | Whole turns or half turns that land straight; a small overshoot ≤ 6°. |
 | **Wave** across parts | the same track `shiftTrack`ed 60–120 ms per part | 3–5 parts; amplitude ≤ the part's own size. |
 | **Grow / appear** | `scale` from 0 about the part's base | Never opacity. Grow from where it would really come from (the soil, the slot). |
+| **Arc** (pop out and back) | two tracks per part, `x` and `z`, eased differently (§6) | Rises fast, drifts slower; stagger 60–80 ms; tilt ≤ 12°; back in faster than out, last out first in. Parts hide inside their housing at rest. |
 | **Draw** a stroke | a clip or `scale` along the stroke | Only for thin marks (a check, a stem). |
 
 Not allowed in this style: loops by default, camera turns, pointer
@@ -130,7 +131,68 @@ const partPose = (clip: Clip) => (ms: number): IsoPose => ({
   beat quickly (≈ 200 ms, `EASE.in`) and then plays it again. Pose
   functions sample tracks whose last key is the end state.
 
-## 6. Make it feel caused
+## 6. Throwing parts on an arc
+
+Things popping out of a container (pages out of a folder, cards out of a
+box, coins out of a jar) look thrown when each one flies on an arc. You
+don't draw an arc path: give the part **two tracks**, across (`x`) and
+up (`z`), with **different eases**. The rise is fast and lands softly
+(`EASE.soft`, overshooting a little then `EASE.easy` down to its height);
+the drift across is slower (`EASE.drop` over a longer time). Because the
+two finish at different moments, the point traces a curve.
+
+```tsx
+// SHEETS: where each one rests (x) and where it flies to ([x, z]), tilt.
+const SHEETS = [
+  { tilt: -12, to: [-3, 3], x: -1.5 },
+  { tilt: 0, to: [0, 4.25], x: 0 },
+  { tilt: 12, to: [3, 3.5], x: 1.5 },
+] as const;
+const OUT = { rise: 260, settle: 160, stagger: 70 };
+const BACK_IN = { ms: 180, stagger: 40 };
+
+const sheets = SHEETS.map(({ tilt, to: [tx, tz], x }, i) => {
+  const go = out + OUT.stagger * i;                              // one after another
+  const back = home + BACK_IN.stagger * (SHEETS.length - 1 - i); // last out, first in
+  const peak = go + OUT.rise;
+  return {
+    // up: fast, a little past, then down to its height; hold; swiftly back
+    z: [[go, 0, EASE.soft], [peak, tz + 0.5, EASE.easy], [peak + OUT.settle, tz, "hold"],
+        [back, tz, EASE.in], [back + BACK_IN.ms, 0]],
+    // across: slower, so the path curves
+    x: [[go, 0, EASE.drop], [peak + OUT.settle, tx - x, "hold"],
+        [back, tx - x, EASE.in], [back + BACK_IN.ms, 0]],
+    // a small tilt in flight, straight again at rest
+    tilt: [[go, 0, EASE.soft], [peak, tilt, "hold"],
+           [back, tilt, EASE.in], [back + BACK_IN.ms, 0]],
+  };
+});
+
+// pose: offset [x, 0, z] and an in-plane turn (axis "y" after FRONT_POSE)
+const sheetPose = (clip: Clip, i: number) => (ms: number): IsoPose => ({
+  axis: "y",
+  offset: [r2(sample(clip.sheets[i].x, ms)), 0, r2(sample(clip.sheets[i].z, ms))],
+  rotate: r2(sample(clip.sheets[i].tilt, ms)),
+});
+```
+
+Rules that came from building it (`examples/folder.tsx`):
+- **Hidden at rest means hidden even when the housing is open.** Parts
+  behind a face show depth/√3 higher than their height, and an opened
+  flap drops. Sit them low enough that their tops never peek over the
+  open flap, or they read as a row of boxes once they're back in.
+- **Paint order does the hiding:** the back panel, then the parts, then
+  the flap. The parts are faces on one plane in the gap between them.
+- **Keep the arcs inside the art's air.** The highest one may rise a
+  little past the frame (the padding isn't clipped), not far above it.
+- **Don't fly over the brand mark.** Pick destinations that leave it
+  visible the whole time.
+- **Out on a curve, back in a line.** Coming back is `EASE.in` on both
+  tracks together, faster than going out: they're pulled home.
+- **The container waits for them.** The flap stays open until the last
+  part is in, then shuts.
+
+## 7. Make it feel caused
 
 - **Something lags.** A follower (a clapper, a second leaf, a flag)
   moves 60–120 ms after its leader and a little further.

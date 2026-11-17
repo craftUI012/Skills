@@ -128,6 +128,9 @@ so you can apply the rule to objects it never mentions.
   track ≥ 0, so no foot goes through the floor.
 - **Hinged parts: track from 0, overshoot only at the open end.** A
   wind-up below zero swings the flap through its housing.
+- **Parts that pop out of a container fly on arcs** (two tracks, x and
+  z, eased differently; see motion.md §6) and hide inside it at rest,
+  low enough that they don't peek over an opened flap.
 - **A part that leaves is thrown in a rig and shrunk away.** Nothing
   fades.
 - **Rest-to-rest beats need one clip; one-way beats need an `again` clip
