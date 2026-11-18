@@ -192,6 +192,25 @@ object or play the beat, leave it out.
 - **Parts side by side along a slope are written from the lowest up.** In
   the front view a part's thickness shows above it, so each one must be
   drawn before the part above it hides its top edge.
+- **Threaded parts interlace.** A ring through a key's hole, a chain
+  link, a lanyard through a badge slot, a hook through a ring: one plane's
+  painting order can't do it with whole shapes, so split the threading
+  part (the ring) at every crossing and paint it in pieces — the arc that
+  goes behind a part before that part, the arc that comes back in front
+  after it, alternating at each hole (under on one side, over on the
+  other). The ring's centre line passes through the hole's middle, with
+  clear space either side of the band; compute the crossing points from
+  the parts' current angles so it still interlaces mid-swing. A ring laid
+  whole over the keys reads as keys stuck on a ring, not hanging from it
+  (2026-11-18).
+  The clean way to build it: paint the whole ring first, then after each
+  part repaint the run of ring from that part's hole to the next, as the
+  same ring path clipped to that wedge (`<clipPath>` with an id from
+  `useId`): the run lands exactly on the band beneath, so its cut ends
+  draw no cap and no seam. Thread every hole the same way round and stack
+  the parts in that order, so the ring in front of one part is behind the
+  next. Let each part swing about its own hole, and the split angles
+  never move. Example: the keyring in the craftUI library.
 - **Seen through glass is drawn on the thing behind.** Clip the enlarged
   marks to the lens opening inside the card's own face.
 - **Clip drawn parts to an opening with a `clipPath` holding a

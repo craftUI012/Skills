@@ -249,6 +249,7 @@ Before you report an object, check it against every line.
 | Sand drawn on the glass outline made one thick smear | Contents sit inside an inset wall, never on the container's outline |
 | A door 0.25 proud of its box doubled the arch | A door the shape of its opening shares one outline at rest |
 | A safe door at 32° in isometric looked edge-on | Isometric doors and lids open ~24–26° so their face still reads |
+| A key ring lay over the keys instead of through their holes ("the ring is not inside the key ring") | Threaded parts interlace: the ring passes behind each part on one side of its hole and in front on the other (line-style.md) |
 
 ## Non-negotiable rules
 
