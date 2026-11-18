@@ -94,6 +94,28 @@ to do:
   at rest (one line), and shows its own edge only once it moves.
 - **Many small joints.** Brick or tile seams make T-junctions; use fewer,
   larger units (the checker ignores junctions, not crowded seams).
+- **Meet parts on straight sides, not in a rounded corner.** A line that
+  meets another part inside that part's rounded corner, near where the
+  curve starts, runs a pixel beside the curve and measures as a doubled
+  line. Keep corner radii small, or square the corner that is hidden, so
+  pins, sleeves, lips and back edges land on a straight side.
+- **Collars and bands are flush or clearly wider.** A collar 0.1 wider
+  than its handle on each side is a stepped part: make it flush (one line
+  each side) or ≥ 0.5 wider.
+- **A strap or cord entering a hole is cut along the hole's arc,** so it
+  shares the hole's outline, not ended in a rounded cap over the hole.
+- **Square top corners on front-view solids** (or a depth large next to
+  the radius): a depth of 0.45 on a 0.7 radius tapers into a wedge; 1 on
+  0.35 is clean. Bottom corners are free, their far copy is hidden.
+- **Keep seams away from crossings.** Where an overlapping part crosses
+  an edge, keep its own seams ≥ 0.5 from the crossing; a seam on the
+  crossing makes a three-line wedge.
+- **Size first, then strips.** A 0.25-unit strip is clean at about 16 px
+  per unit and doubles at about 13. Set the art's default width first,
+  then size every strip for it: objects drawn small need strips ≥ 0.5.
+- **Text counts as outline.** Glyphs with small gaps (`!`, `i`, `:`) read
+  as doubled lines; draw marks as shapes with clear gaps (a bar and a dot
+  ≥ 0.5 apart) instead of setting text.
 - **Lines that end in the air.** Every line ends on another line, a
   corner, or a clean occluding edge it meets at a real angle. A line
   hidden by a near-tangent curve reads as broken.

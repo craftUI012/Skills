@@ -349,7 +349,14 @@ for (const theme of ["light", "dark"]) {
           if (!on && start >= 0) {
             if (prev) {
               const gap = start - prev[1] - 1;
-              if (gap >= 2 && gap <= 9) for (let u = prev[0]; u < t; u += 1) set(k, u);
+              // Mark only around the gap (a line's width either side), not
+              // both whole runs: a long line that merely ends near another
+              // is a junction, not a double.
+              if (gap >= 2 && gap <= 9) {
+                const lo = Math.max(prev[0], prev[1] - 6);
+                const hi = Math.min(t - 1, start + 6);
+                for (let u = lo; u <= hi; u += 1) set(k, u);
+              }
             }
             prev = [start, t - 1];
             start = -1;

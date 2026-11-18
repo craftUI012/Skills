@@ -250,6 +250,8 @@ Before you report an object, check it against every line.
 | A door 0.25 proud of its box doubled the arch | A door the shape of its opening shares one outline at rest |
 | A safe door at 32° in isometric looked edge-on | Isometric doors and lids open ~24–26° so their face still reads |
 | A key ring lay over the keys instead of through their holes ("the ring is not inside the key ring") | Threaded parts interlace: the ring passes behind each part on one side of its hole and in front on the other (line-style.md) |
+| Shrinking an object to its size brought the doubled lines back | Set the default width first, then make strips ≥ 0.5 for objects drawn small |
+| A "!!!" badge failed the line check | Draw marks as shapes with clear gaps; avoid gap glyphs in text |
 
 ## Non-negotiable rules
 
