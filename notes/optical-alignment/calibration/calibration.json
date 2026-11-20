@@ -1,0 +1,87 @@
+{
+  "references": [
+    {
+      "alphaX": 0.82,
+      "box": [
+        13.5,
+        12
+      ],
+      "mass": [
+        11.67,
+        12
+      ],
+      "name": "Material play_arrow"
+    },
+    {
+      "alphaX": 0.5,
+      "box": [
+        13,
+        12
+      ],
+      "mass": [
+        10.99,
+        12
+      ],
+      "name": "Lucide play"
+    },
+    {
+      "alphaX": 0.68,
+      "box": [
+        13.5,
+        12
+      ],
+      "mass": [
+        11.31,
+        12
+      ],
+      "name": "Tabler player-play-filled"
+    },
+    {
+      "alphaX": 0,
+      "box": [
+        12,
+        12
+      ],
+      "mass": [
+        10.77,
+        12
+      ],
+      "name": "Hugeicons play"
+    }
+  ],
+  "sheet": [
+    {
+      "box": [
+        12,
+        12
+      ],
+      "mass": [
+        9.67,
+        12
+      ],
+      "name": "Triangle"
+    },
+    {
+      "box": [
+        12,
+        12
+      ],
+      "mass": [
+        11.32,
+        12.68
+      ],
+      "name": "Pencil edit"
+    },
+    {
+      "box": [
+        12,
+        12
+      ],
+      "mass": [
+        12,
+        12.32
+      ],
+      "name": "Bin"
+    }
+  ]
+}
