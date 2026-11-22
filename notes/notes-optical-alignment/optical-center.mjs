@@ -3,7 +3,7 @@
  * optical-center.mjs: where an icon looks centred, and how far to move it.
  *
  *   node optical-center.mjs <icon.svg ...> [--size 14] [--box 28]
- *                           [--alpha 0.75] [--step 0.25] [--area-ref 0.5]
+ *                           [--alpha 0.7] [--step 0.25] [--area-ref 0.5]
  *   node optical-center.mjs --calibrate [--out ./calibration]
  *
  * For each SVG it draws the icon's silhouette (every shape filled, strokes
@@ -46,7 +46,7 @@ const files = argv.filter(
 
 const SIZE = Number(flag("size", 14));
 const BOX = Number(flag("box", 28));
-const ALPHA = Number(flag("alpha", 0.75));
+const ALPHA = Number(flag("alpha", 0.7));
 const STEP = Number(flag("step", 0.25));
 const AREA_REF = flag("area-ref", null);
 const OUT = flag("out", "./calibration");

@@ -6,6 +6,7 @@ Cursor, Codex and any agent that reads `SKILL.md` skills.
 | Skill | What it does |
 | --- | --- |
 | [`isometrics`](isometrics/) | Draws and animates outline-style isometric objects in React + SVG: empty states, blocked states and spot illustrations, with exact isometric math, one beat of motion, and a strict render-and-screenshot check. Ships with its engine and 10 examples. |
+| [`notes-*`](notes/) | Small craft details, one skill each: [`notes-optical-alignment`](notes/notes-optical-alignment/) centres an icon by where its shape weighs and tells you the nudge in pixels. |
 
 More skills (illustrations) will live next to it, one folder each.
 
@@ -13,6 +14,12 @@ More skills (illustrations) will live next to it, one folder each.
 
 ```bash
 npx skills add craftUI012/Skills --skill isometrics
+```
+
+Only the notes (every `notes-*` skill, nothing else):
+
+```bash
+npx skills add https://github.com/craftUI012/Skills/tree/main/notes
 ```
 
 Pick your agents and choose **Symlink** when asked. One copy goes into
