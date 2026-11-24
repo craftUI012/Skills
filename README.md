@@ -6,7 +6,7 @@ Cursor, Codex and any agent that reads `SKILL.md` skills.
 | Skill | What it does |
 | --- | --- |
 | [`isometrics`](isometrics/) | Draws and animates outline-style isometric objects in React + SVG: empty states, blocked states and spot illustrations, with exact isometric math, one beat of motion, and a strict render-and-screenshot check. Ships with its engine and 10 examples. |
-| [`notes-*`](notes/) | Small craft details, one skill each: [`notes-optical-alignment`](notes/notes-optical-alignment/) centres an icon by where its shape weighs and tells you the nudge in pixels. |
+| [`notes-*`](notes/) | Small craft details, one skill each: [`notes-optical-alignment`](notes/notes-optical-alignment/) centres an icon by where its shape weighs and tells you the nudge in pixels; [`notes-user-behaviour-design`](notes/notes-user-behaviour-design/) keeps controls where the hand left them (first topic: tab anchor). |
 
 More skills (illustrations) will live next to it, one folder each.
 
