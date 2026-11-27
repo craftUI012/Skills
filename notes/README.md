@@ -9,6 +9,7 @@ it again.
 | --- | --- | --- |
 | [Optical alignment](notes-optical-alignment/) | `notes-optical-alignment` | Centre an icon by where its shape weighs, not by its box. Formula, calibration (α 0.7) and a script that measures any SVG. |
 | [User behaviour design](notes-user-behaviour-design/) | `notes-user-behaviour-design` | Controls stay where the hand left them. Topics: [tab anchor](notes-user-behaviour-design/tab-anchor/) (pin the edge the tabs sit on; video, CSS fix, drift script). |
+| [Optical spacing](notes-optical-spacing/) | `notes-optical-spacing` | Pad the ink, not the box. Topics: [button icon padding](notes-optical-spacing/button-icon-padding/) (give the text side about 2px extra) and [card text trim](notes-optical-spacing/card-text-trim/) (`text-box: trim-both cap alphabetic`), with a script that measures every side's gap to the ink. |
 
 ## Install
 
